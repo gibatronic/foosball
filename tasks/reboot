@@ -1,19 +1,13 @@
 #!/usr/bin/env bash
 
-set -e
-
-. ./tasks/is_raspberry_pi.sh
-
 main() {
-    local action='sleep 5 && sudo reboot --no-wall &'
+    local action='{ sleep 5; sudo reboot --no-wall; } &'
 
     if is_raspberry_pi; then
         "$action"
     else
         ssh foosball "$action"
     fi
-
-    return $?
 }
 
-main
+. ./tasks/runner.sh

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+main() {
+    npx nest build
+}
+
+. ./tasks/runner.sh

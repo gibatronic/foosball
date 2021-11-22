@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+main() {
+    local option=$1
+
+    case "$option" in
+        '--coverage')
+            npx jest --config ./jest.json --coverage
+            ;;
+        '--debug')
+            node --inspect-brk -r 'tsconfig-paths/register' -r 'ts-node/register' 'node_modules/.bin/jest' --runInBand
+            ;;
+        '--e2e')
+            npx jest --config ./test/jest-e2e.json
+            ;;
+        '--watch')
+            npx jest --config ./jest.json --watch
+            ;;
+        *)
+            npx jest --config ./jest.json "$@"
+            ;;
+    esac
+}
+
+. ./tasks/runner.sh

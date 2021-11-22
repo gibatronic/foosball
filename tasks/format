@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+main() {
+    npx prettier --ignore-unknown --write '**/*'
+}
+
+. ./tasks/runner.sh

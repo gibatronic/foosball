@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+main() {
+    case "$ENVIRONMENT" in
+        'development')
+            NODE_ENV=$ENVIRONMENT npx nest start --watch
+            ;;
+        'production')
+            NODE_ENV=$ENVIRONMENT node "$OUTPUT_DIRECTORY/main"
+            ;;
+        *)
+            throw 'BAD_ENV' "unkown ENVIRONMENT: \"$ENVIRONMENT\""
+            ;;
+    esac
+}
+
+. ./tasks/runner.sh
