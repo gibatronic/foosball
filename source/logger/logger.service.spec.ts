@@ -9,7 +9,7 @@ describe('LoggerService', () => {
             providers: [LoggerService],
         }).compile()
 
-        service = module.get(LoggerService)
+        service = await module.resolve(LoggerService)
     })
 
     it('should be defined', () => {

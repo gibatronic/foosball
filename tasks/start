@@ -3,7 +3,7 @@
 main() {
     case "$ENVIRONMENT" in
         'development')
-            NODE_ENV=$ENVIRONMENT npx nest start --watch
+            NEST_DEBUG=true NODE_ENV=$ENVIRONMENT npx nest start --watch
             ;;
         'production')
             NODE_ENV=$ENVIRONMENT node "$OUTPUT_DIRECTORY/main"
