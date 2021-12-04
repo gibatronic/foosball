@@ -43,15 +43,20 @@ export class TeamsService {
         return this.getTeam(color).goals
     }
 
+    addTeams(teams: Team[]) {
+        this.logger.debug(`addTeams ${teams.length}`)
+        teams.forEach((team) => this.addTeam(team))
+    }
+
     addTeam(team: Team) {
         team = plainToClass(Team, team)
 
-        this.logger.debug(`setTeam ${team}`)
+        this.logger.debug(`addTeam ${team}`)
         this.store.set(`team:${team.color}`, team)
     }
 
     addTeamGoal(color: string) {
-        this.logger.debug(`addTeam '${color}'`)
+        this.logger.debug(`addTeamGoal '${color}'`)
 
         return ++this.getTeam(color).goals
     }

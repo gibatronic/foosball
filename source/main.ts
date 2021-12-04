@@ -1,39 +1,23 @@
 import { ValidationPipe } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import { NestExpressApplication } from '@nestjs/platform-express'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
-import dotenv from 'dotenv'
 import { AppModule } from './app.module'
+import { Configuration } from './config/configuration'
 import { LoggerService } from './logger/logger.service'
 import { TeamsService } from './teams/teams.service'
-
-dotenv.config()
-
-async function main() {
-    const { app, logger } = await createApp()
-
-    setUpSwagger(app)
-    setUpTeams(app)
-
-    try {
-        await app.listen(process.env.PORT ?? 0)
-    } catch (exception) {
-        logger.error(exception)
-        process.exitCode = 1
-        return
-    }
-
-    await setUpApp(app, logger)
-}
 
 async function createApp() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule, {
         bufferLogs: true,
     })
 
+    const config = app.get<ConfigService<Configuration, true>>(ConfigService)
     const logger = await app.resolve(LoggerService)
+
     logger.setContext('main')
-    // @todo logger.setLogLevels(???)
+    logger.setLogLevels(config.get('logLevels'))
 
     app.disable('x-powered-by')
     app.useGlobalPipes(
@@ -48,10 +32,23 @@ async function createApp() {
     )
     app.useLogger(logger)
 
-    return { app, logger }
+    return { app, config, logger }
 }
 
-async function setUpApp(app: NestExpressApplication, logger: LoggerService) {
+async function main() {
+    const { app, config, logger } = await createApp()
+
+    setUpSwagger(app)
+    setUpTeams(app, config)
+    await setUpApp(app, config, logger)
+}
+
+async function setUpApp(
+    app: NestExpressApplication,
+    config: ConfigService<Configuration, true>,
+    logger: LoggerService,
+) {
+    await app.listen(config.get('port'))
     logger.log(`listening at ${await app.getUrl()}`)
 
     process.on('SIGTERM', async () => {
@@ -81,18 +78,12 @@ function setUpSwagger(app: NestExpressApplication) {
     })
 }
 
-function setUpTeams(app: NestExpressApplication) {
-    const teamsService = app.get(TeamsService)
-
-    teamsService.addTeam({
-        color: 'blue',
-        goals: 0,
-    })
-
-    teamsService.addTeam({
-        color: 'red',
-        goals: 0,
-    })
+function setUpTeams(
+    app: NestExpressApplication,
+    config: ConfigService<Configuration, true>,
+) {
+    const teams = app.get(TeamsService)
+    teams.addTeams(config.get('teams'))
 }
 
 main()
