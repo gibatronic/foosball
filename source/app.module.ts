@@ -1,16 +1,12 @@
 import { Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
-import configuration from './config/configuration'
+import { AppService } from './app.service'
+import { ConfigModule } from './config/config.module'
 import { LoggerModule } from './logger/logger.module'
 import { StoreModule } from './store/store.module'
 import { TeamsModule } from './teams/teams.module'
 
 @Module({
-    imports: [
-        ConfigModule.forRoot({ cache: true, load: [configuration] }),
-        LoggerModule,
-        StoreModule,
-        TeamsModule,
-    ],
+    imports: [ConfigModule, LoggerModule, StoreModule, TeamsModule],
+    providers: [AppService],
 })
 export class AppModule {}

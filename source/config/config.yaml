@@ -1,0 +1,20 @@
+base: &base
+    teams:
+        - color: blue
+          goals: 0
+        - color: red
+          goals: 0
+
+development:
+    <<: *base
+    logLevels:
+        - debug
+        - log
+        - warn
+        - error
+
+production:
+    <<: *base
+    logLevels:
+        - warn
+        - error

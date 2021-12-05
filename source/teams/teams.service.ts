@@ -16,7 +16,7 @@ export class TeamsService {
         private readonly logger: LoggerService,
         private readonly store: StoreService,
     ) {
-        this.logger.setContext(this.constructor.name)
+        this.logger.setup(this.constructor.name)
     }
 
     getTeams() {

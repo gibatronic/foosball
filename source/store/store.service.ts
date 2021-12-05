@@ -10,7 +10,7 @@ export class StoreService {
         @Inject(DATA)
         private readonly data: Map<string, unknown>,
     ) {
-        this.logger.setContext(this.constructor.name)
+        this.logger.setup(this.constructor.name)
     }
 
     public get<V>(key: string) {

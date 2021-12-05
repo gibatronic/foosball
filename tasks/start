@@ -3,10 +3,10 @@
 main() {
     case "$ENVIRONMENT" in
         'development')
-            NEST_DEBUG=true NODE_ENV=$ENVIRONMENT npx nest start --watch
+            ENVIRONMENT=$ENVIRONMENT NEST_DEBUG=true NODE_ENV=$ENVIRONMENT npx nest start --watch
             ;;
         'production')
-            NODE_ENV=$ENVIRONMENT node "$OUTPUT_DIRECTORY/main"
+            ENVIRONMENT=$ENVIRONMENT NODE_ENV=$ENVIRONMENT node "$OUTPUT_DIRECTORY/main"
             ;;
         *)
             throw 'BAD_ENV' "unkown ENVIRONMENT: \"$ENVIRONMENT\""
