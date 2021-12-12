@@ -2,6 +2,7 @@ import { Injectable, ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { NestExpressApplication } from '@nestjs/platform-express'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
+import { join } from 'path'
 import { Config } from './config/config.entity'
 import { LoggerService } from './logger/logger.service'
 import { TeamsService } from './teams/teams.service'
@@ -19,6 +20,7 @@ export class AppService {
     async bootstrap(app: NestExpressApplication) {
         this.setUpApp(app)
         this.setUpSwagger(app)
+        this.setUpViews(app)
 
         await app.listen(this.config.get('port'))
         this.logger.log(`listening at ${await app.getUrl()}`)
@@ -58,7 +60,7 @@ export class AppService {
     setUpSwagger(app: NestExpressApplication) {
         const documentBuilder = new DocumentBuilder()
             .setTitle('Foosball API')
-            .setVersion(process.env.npm_package_version ?? '')
+            .setVersion(this.config.get('version'))
             .build()
 
         const document = SwaggerModule.createDocument(app, documentBuilder)
@@ -71,5 +73,13 @@ export class AppService {
                 defaultModelsExpandDepth: -1,
             },
         })
+    }
+
+    setUpViews(app: NestExpressApplication) {
+        const log = join(__dirname, 'log')
+
+        app.setBaseViewsDir(log)
+        app.useStaticAssets(log)
+        app.setViewEngine('hbs')
     }
 }

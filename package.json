@@ -7,6 +7,7 @@
         "@nestjs/swagger": "^5.1.5",
         "class-transformer": "^0.5.1",
         "class-validator": "^0.13.2",
+        "hbs": "^4.2.0",
         "joi": "^17.5.0",
         "js-yaml": "^4.1.0",
         "reflect-metadata": "^0.1.13",
