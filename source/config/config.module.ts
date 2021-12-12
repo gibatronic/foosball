@@ -5,8 +5,6 @@ import yaml from 'js-yaml'
 import { join } from 'path'
 import { Config } from './config.entity'
 
-type ConfigWithoutEnvVar = Omit<Config, 'environment' | 'port'>
-
 const validationSchema = Joi.object({
     ENVIRONMENT: Joi.string().required().valid('development', 'production'),
     PORT: Joi.number().required().min(0),
@@ -22,15 +20,18 @@ function loader(): Config {
     const file = join(__dirname, 'config.yaml')
 
     const config = yaml.load(readFileSync(file, 'utf8')) as {
-        development: ConfigWithoutEnvVar
-        production: ConfigWithoutEnvVar
+        development: Config
+        production: Config
     }
 
     const environment = process.env.ENVIRONMENT as 'development' | 'production'
+    const port = parseInt(process.env.PORT ?? '0', 10)
+    const version = process.env.npm_package_version ?? ''
 
     return {
-        environment,
-        port: parseInt(process.env.PORT ?? '0', 10),
         ...config[environment],
+        environment,
+        port,
+        version,
     }
 }

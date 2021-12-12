@@ -6,4 +6,5 @@ export class Config {
     logLevels!: LogLevel[]
     port!: number
     teams!: Team[]
+    version!: string
 }
