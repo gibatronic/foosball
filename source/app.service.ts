@@ -4,6 +4,7 @@ import { NestExpressApplication } from '@nestjs/platform-express'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { join } from 'path'
 import { Config } from './config/config.entity'
+import { DriverService } from './driver/driver.service'
 import { LoggerService } from './logger/logger.service'
 import { TeamsService } from './teams/teams.service'
 
@@ -11,6 +12,7 @@ import { TeamsService } from './teams/teams.service'
 export class AppService {
     constructor(
         private readonly config: ConfigService<Config, true>,
+        private readonly driver: DriverService,
         private readonly logger: LoggerService,
         private readonly teams: TeamsService,
     ) {
@@ -21,6 +23,7 @@ export class AppService {
         this.setUpApp(app)
         this.setUpSwagger(app)
         this.setUpViews(app)
+        this.driver.setUp()
 
         await app.listen(this.config.get('port'))
         this.logger.log(`listening at ${await app.getUrl()}`)
