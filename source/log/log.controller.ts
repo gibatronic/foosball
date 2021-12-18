@@ -15,7 +15,7 @@ export class LogController {
     @Get('log')
     @Render('log.view.hbs')
     @ApiExcludeEndpoint()
-    log() {
+    viewLog() {
         return {
             version: this.config.get('version'),
         }
