@@ -3,10 +3,14 @@ import { readFileSync } from 'fs'
 import Joi from 'joi'
 import yaml from 'js-yaml'
 import { join } from 'path'
-import { Config } from './config.entity'
+import { Config, ConfigFile } from './config.entity'
+import { Environment } from './environment.entity'
 
 const validationSchema = Joi.object({
-    ENVIRONMENT: Joi.string().required().valid('development', 'production'),
+    ENVIRONMENT: Joi.string()
+        .required()
+        .valid(...Object.keys(Environment)),
+
     PORT: Joi.number().required().min(0),
 })
 
@@ -18,19 +22,17 @@ export const ConfigModule = ConfigBuilder.forRoot({
 
 function loader(): Config {
     const file = join(__dirname, 'config.yaml')
+    const config = yaml.load(readFileSync(file, 'utf8')) as ConfigFile
 
-    const config = yaml.load(readFileSync(file, 'utf8')) as {
-        development: Config
-        production: Config
-    }
-
-    const environment = process.env.ENVIRONMENT as 'development' | 'production'
+    const environment = process.env.ENVIRONMENT as Config['environment']
+    const logFile = process.env.LOG_FILE ?? null
     const port = parseInt(process.env.PORT ?? '0', 10)
     const version = process.env.npm_package_version ?? ''
 
     return {
         ...config[environment],
         environment,
+        logFile,
         port,
         version,
     }

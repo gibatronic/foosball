@@ -1,4 +1,10 @@
 base: &base
+    logLevels:
+        - verbose
+        - debug
+        - log
+        - warn
+        - error
     teams:
         - color: blue
           goals: 0
@@ -7,14 +13,10 @@ base: &base
 
 development:
     <<: *base
-    logLevels:
-        - debug
-        - log
-        - warn
-        - error
+
+testing:
+    <<: *base
+    teams: []
 
 production:
     <<: *base
-    logLevels:
-        - warn
-        - error

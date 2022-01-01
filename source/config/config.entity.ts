@@ -1,10 +1,16 @@
 import { LogLevel } from '@nestjs/common'
 import { Team } from '../teams/team.entity'
+import { Environment } from './environment.entity'
 
-export class Config {
-    environment!: 'development' | 'production'
-    logLevels!: LogLevel[]
-    port!: number
-    teams!: Team[]
-    version!: string
+export interface Config {
+    environment: Environment
+    logFile: string | null
+    logLevels: LogLevel[]
+    port: number
+    teams: Team[]
+    version: string
+}
+
+export type ConfigFile = {
+    [key in Environment]: Config
 }
