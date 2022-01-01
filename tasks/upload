@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+
+main() {
+    if is_raspberry_pi; then
+        throw 'RPI' "cannot upload from within Raspberry Pi"
+    fi
+
+    if ! command -v fswatch &> /dev/null; then
+        throw 'NO_FSWATCH' "missing fswatch command"
+    fi
+
+    if [ -z "$UPLOAD_FOLDER" ]; then
+        throw 'NO_UPLOAD_FOLDER' 'missing UPLOAD_FOLDER environment variable'
+    fi
+
+    if [ -z "$UPLOAD_SERVER" ]; then
+        throw 'NO_UPLOAD_SERVER' 'missing UPLOAD_SERVER environment variable'
+    fi
+
+    if [[ "$*" == *'--watch'* ]]; then
+        watch | upload
+    else
+        upload
+    fi
+}
+
+upload() {
+    while read event; do
+        echo "event=$event"
+        if [ ! -r "$event" ]; then
+            continue
+        fi
+
+        local file="${event#$PWD/}"
+        local log="$(mktemp)"
+
+        local options=(
+            '--archive'
+            '--ignore-times'
+            '--relative'
+            "$file"
+            "$UPLOAD_SERVER:$UPLOAD_FOLDER/$file"
+        )
+
+        rsync "${options[@]}" &> "$log"
+        local exit_code="$?"
+
+        if [ "$exit_code" = '0' ]; then
+            printf '✓ %s\n' "$file"
+        else
+            printf '✖ %s\n' "$file"
+            cat "$log"
+        fi
+
+        rm "$log"
+    done
+}
+
+watch() {
+    local options=(
+        -e '.DS_Store'
+        -e '.env'
+        -e 'build'
+        -e 'coverage'
+        -e 'node_modules'
+    )
+
+    fswatch "${options[@]}" '.'
+}
+
+. ./tasks/runner.sh

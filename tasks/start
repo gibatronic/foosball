@@ -3,13 +3,18 @@
 main() {
     case "$ENVIRONMENT" in
         'development')
-            ENVIRONMENT=$ENVIRONMENT NEST_DEBUG=true NODE_ENV=$ENVIRONMENT npx nest start --watch
+            ENVIRONMENT="$ENVIRONMENT" NEST_DEBUG=true NODE_ENV="$ENVIRONMENT" npx nest start --watch
             ;;
         'production')
-            ENVIRONMENT=$ENVIRONMENT NODE_ENV=$ENVIRONMENT node "$OUTPUT_DIRECTORY/main"
+            printf 'LOG_FILE=%s\n\n' "$LOG_FILE"
+            ENVIRONMENT="$ENVIRONMENT" LOG_FILE="$LOG_FILE" NO_COLOR='true' NODE_ENV="$ENVIRONMENT" node "$OUTPUT_FOLDER/main" &> "$LOG_FILE"
             ;;
         *)
-            throw 'BAD_ENV' "unkown ENVIRONMENT: \"$ENVIRONMENT\""
+            if [ -z "$ENVIRONMENT" ]; then
+                throw 'NO_ENV' "missing ENVIRONMENT environment variable"
+            else
+                throw 'BAD_ENV' "unkown ENVIRONMENT: \"$ENVIRONMENT\""
+            fi
             ;;
     esac
 }

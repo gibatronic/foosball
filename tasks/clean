@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 main() {
-    npx rimraf "$COVERAGE_DIRECTORY"
-    npx rimraf "$OUTPUT_DIRECTORY"
+    npx rimraf "$COVERAGE_FOLDER"
+    npx rimraf "$OUTPUT_FOLDER"
 }
 
 . ./tasks/runner.sh

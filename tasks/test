@@ -1,25 +1,60 @@
 #!/usr/bin/env bash
 
 main() {
+    local action=''
     local option=$1
 
     case "$option" in
         '--coverage')
-            npx jest --config ./jest.json --coverage
+            action=(
+                npx
+                jest
+                --config ./jest.json
+                --coverage
+                "${@:2}"
+            )
             ;;
         '--debug')
-            node --inspect-brk -r 'tsconfig-paths/register' -r 'ts-node/register' 'node_modules/.bin/jest' --runInBand
+            action=(
+                node
+                --inspect-brk
+                -r 'tsconfig-paths/register'
+                -r 'ts-node/register'
+                'node_modules/.bin/jest'
+                --runInBand
+                "${@:2}"
+            )
             ;;
         '--e2e')
-            npx jest --config ./test/jest-e2e.json
+            action=(
+                npx
+                jest
+                --config ./test/jest-e2e.json
+                --detectOpenHandles
+                --forceExit
+                "${@:2}"
+            )
             ;;
         '--watch')
-            npx jest --config ./jest.json --watch
+            action=(
+                npx
+                jest
+                --config ./jest.json
+                --watch
+                "${@:2}"
+            )
             ;;
         *)
-            npx jest --config ./jest.json "$@"
+            action=(
+                npx
+                jest
+                --config ./jest.json
+                "$@"
+            )
             ;;
     esac
+
+    ENVIRONMENT='testing' LOG_FILE="$(mktemp -t 'foosbal')" PORT='0' NODE_ENV='production' "${action[@]}"
 }
 
 . ./tasks/runner.sh

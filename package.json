@@ -53,10 +53,14 @@
         "reboot": "./tasks/reboot",
         "start": "./tasks/start",
         "test": "./tasks/test",
+        "test:ci": "npm run test && npm run test:e2e",
         "test:cov": "./tasks/test --coverage",
         "test:debug": "./tasks/test --debug",
         "test:e2e": "./tasks/test --e2e",
-        "test:watch": "./tasks/test --watch"
+        "test:watch": "./tasks/test --watch",
+        "tree": "./tasks/tree",
+        "upload": "./tasks/upload",
+        "upload:watch": "./tasks/upload --watch"
     },
     "version": "0.1.0"
 }

@@ -1,10 +1,16 @@
 set -e
 
 [ -r '.env' ] && source '.env'
-COVERAGE_DIRECTORY=$(node './tasks/get-coverage-directory.js')
+COVERAGE_FOLDER=$(node './tasks/get-coverage-folder.js')
 ENVIRONMENT=${ENVIRONMENT:-'development'}
-OUTPUT_DIRECTORY=$(node --eval 'require("./tsconfig.json").compilerOptions.outDir' --print)
+LOG_FILE=${LOG_FILE:-$(mktemp -t 'foosbal')}
+OUTPUT_FOLDER=$(node './tasks/get-output-folder.js')
+ROOT_FOLDER=$(node './tasks/get-root-folder.js')
 TASK=$(basename "$0")
+
+has_main() {
+    type -t main | grep 'function' &> /dev/null
+}
 
 is_raspberry_pi() {
     local model='/sys/firmware/devicetree/base/model'
@@ -12,23 +18,13 @@ is_raspberry_pi() {
     [ -r "$model" ] && grep 'Raspberry Pi' "$model" &> /dev/null
 }
 
-no_main() {
-    [ "$(type -t main)" != 'function' ]
-}
-
 throw() {
     local error=$1
     local message=$2
 
-    printf 'ERROR_%s\n' "$error" 1>&2
-    printf '%s\n' "$message" 1>&2
-
+    printf 'ERROR_%s\n%s\n\n' "$error" "$message" 1>&2
     return 1
 }
 
-runner() {
-    no_main && throw 'NO_MAIN' "task \"$TASK\" has no main declaration"
-    main "$@"
-}
-
-runner "$@"
+has_main || throw 'NO_MAIN' "task \"$TASK\" has no main declaration"
+main "$@"
