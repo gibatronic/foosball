@@ -1,23 +1,61 @@
-import { Controller, Get, Render } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-import { ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger'
+import {
+    Controller,
+    Get,
+    HttpStatus,
+    InternalServerErrorException,
+    Render,
+    Res,
+} from '@nestjs/common'
+import {
+    ApiExcludeEndpoint,
+    ApiInternalServerErrorResponse,
+    ApiOkResponse,
+    ApiTags,
+} from '@nestjs/swagger'
+import { Response } from 'express'
+import { LogService } from './log.service'
 
 @Controller()
 @ApiTags('Log')
 export class LogController {
-    constructor(public readonly config: ConfigService) {}
+    constructor(private readonly logService: LogService) {}
 
     @Get('api/log')
-    apiLog() {
-        return []
+    @ApiOkResponse({ description: 'Every line from `LOG_FILE`' })
+    @ApiInternalServerErrorResponse({
+        description: 'When `LOG_FILE` fails to open for reading and streaming',
+    })
+    async apiLog(@Res() response: Response) {
+        let logStream
+
+        try {
+            logStream = await this.logService.getLogStream()
+        } catch (exception) {
+            let description
+
+            if (exception instanceof Error) {
+                description = exception.message
+            } else {
+                description = JSON.stringify(exception)
+            }
+
+            response
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .json(
+                    new InternalServerErrorException(description).getResponse(),
+                )
+
+            return
+        }
+
+        response.type('text')
+        logStream.pipe(response)
     }
 
     @Get('log')
-    @Render('log.view.hbs')
     @ApiExcludeEndpoint()
+    @Render('log.view.hbs')
     viewLog() {
-        return {
-            version: this.config.get('version'),
-        }
+        return this.logService.getViewData()
     }
 }
