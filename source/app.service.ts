@@ -20,12 +20,12 @@ export class AppService {
     }
 
     async bootstrap(app: NestExpressApplication) {
-        this.setUpApp(app)
-        this.setUpSwagger(app)
-        this.setUpViews(app)
-        this.driver.setUp()
+        this.setupApp(app)
+        this.setupSwagger(app)
+        this.setupViews(app)
+        this.driver.setup()
 
-        await app.listen(this.config.get('port'))
+        await app.listen(this.config.get<Config['port']>('port'))
         this.logger.log(`listening at ${await app.getUrl()}`)
 
         process.on('SIGTERM', this.handleTerminateSignal(app))
@@ -42,7 +42,7 @@ export class AppService {
         }
     }
 
-    setUpApp(app: NestExpressApplication) {
+    setupApp(app: NestExpressApplication) {
         app.disable('x-powered-by')
 
         app.useGlobalPipes(
@@ -57,13 +57,13 @@ export class AppService {
         )
 
         app.useLogger(this.logger)
-        this.teams.addTeams(this.config.get('teams'))
+        this.teams.addTeams(this.config.get<Config['teams']>('teams'))
     }
 
-    setUpSwagger(app: NestExpressApplication) {
+    setupSwagger(app: NestExpressApplication) {
         const documentBuilder = new DocumentBuilder()
             .setTitle('Foosball API')
-            .setVersion(this.config.get('version'))
+            .setVersion(this.config.get<Config['version']>('version'))
             .build()
 
         const document = SwaggerModule.createDocument(app, documentBuilder)
@@ -78,7 +78,7 @@ export class AppService {
         })
     }
 
-    setUpViews(app: NestExpressApplication) {
+    setupViews(app: NestExpressApplication) {
         const log = join(__dirname, 'log')
 
         app.setBaseViewsDir(log)
