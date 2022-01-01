@@ -10,6 +10,6 @@ export class LoggerService extends ConsoleLogger {
 
     setup(context: string) {
         this.setContext(context)
-        this.setLogLevels(this.config.get('logLevels'))
+        this.setLogLevels(this.config.get<Config['logLevels']>('logLevels'))
     }
 }
