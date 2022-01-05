@@ -13,6 +13,7 @@ import {
     ApiTags,
 } from '@nestjs/swagger'
 import { Response } from 'express'
+import { ErrorResponse } from '../error-response.interface'
 import { LogService } from './log.service'
 
 @Controller()
@@ -21,8 +22,12 @@ export class LogController {
     constructor(private readonly logService: LogService) {}
 
     @Get('api/log')
-    @ApiOkResponse({ description: 'Every line from `LOG_FILE`' })
+    @ApiOkResponse({
+        description: 'Every line from `LOG_FILE`',
+        content: { 'text/plain': { schema: { type: 'string' } } },
+    })
     @ApiInternalServerErrorResponse({
+        type: ErrorResponse,
         description: 'When `LOG_FILE` fails to open for reading and streaming',
     })
     async apiLog(@Res() response: Response) {

@@ -7,16 +7,18 @@ base: &base
         - error
     teams:
         - color: blue
-          goals: 0
+          points: 0
+          pin: 11
         - color: red
-          goals: 0
+          points: 0
+          pin: 13
 
 development:
+    <<: *base
+
+production:
     <<: *base
 
 testing:
     <<: *base
     teams: []
-
-production:
-    <<: *base

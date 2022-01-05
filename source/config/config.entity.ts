@@ -1,6 +1,6 @@
 import { LogLevel } from '@nestjs/common'
 import { Team } from '../teams/team.entity'
-import { Environment } from './environment.entity'
+import { Environment } from './environment.enum'
 
 export interface Config {
     environment: Environment

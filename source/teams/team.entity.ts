@@ -1,17 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsInt } from 'class-validator'
+import { Expose } from 'class-transformer'
+import { TransformerGroups } from '../transformer-groups.enum'
 
 export class Team {
     @ApiProperty()
     color!: string
 
-    @ApiProperty({
-        minimum: 0,
-    })
-    @IsInt()
-    goals!: number
+    @ApiProperty()
+    points!: number
+
+    @Expose({ groups: [TransformerGroups.PRIVATE] })
+    pin!: number
 
     toString() {
-        return `[Team ${this.color} ${this.goals}]`
+        return `[Team ${this.color} ${this.points}]`
     }
 }

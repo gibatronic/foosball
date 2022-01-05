@@ -4,7 +4,7 @@ import Joi from 'joi'
 import yaml from 'js-yaml'
 import { join } from 'path'
 import { Config, ConfigFile } from './config.entity'
-import { Environment } from './environment.entity'
+import { Environment } from './environment.enum'
 
 const validationSchema = Joi.object({
     ENVIRONMENT: Joi.string()

@@ -1,5 +1,6 @@
-import { Controller, Get, HttpCode, Param, Post } from '@nestjs/common'
-import { ApiResponse, ApiTags } from '@nestjs/swagger'
+import { Controller, Delete, Get, HttpCode, Param, Post } from '@nestjs/common'
+import { ApiOkResponse, ApiTags } from '@nestjs/swagger'
+import { instanceToInstance } from 'class-transformer'
 import { Team } from './team.entity'
 import { TeamsService } from './teams.service'
 
@@ -9,27 +10,42 @@ export class TeamsController {
     constructor(private readonly teamsService: TeamsService) {}
 
     @Get()
-    @ApiResponse({ type: [Team] })
+    @ApiOkResponse({ type: [Team], description: 'List teams' })
     getTeams() {
-        return this.teamsService.getTeams()
+        return instanceToInstance(this.teamsService.getTeams())
     }
 
     @Get(':color')
-    @ApiResponse({ type: Team })
+    @ApiOkResponse({ type: Team, description: 'Show a team' })
     getTeam(@Param('color') color: string) {
-        return this.teamsService.getTeam(color)
+        return instanceToInstance(this.teamsService.getTeam(color))
     }
 
-    @Get(':color/goals')
-    @ApiResponse({ type: Number })
-    getTeamGoals(@Param('color') color: string) {
-        return this.teamsService.getTeamGoals(color)
+    @Get(':color/points')
+    @ApiOkResponse({
+        description: 'Show the points of a team',
+        content: { 'text/plain': { schema: { type: 'number' } } },
+    })
+    getTeamPoints(@Param('color') color: string) {
+        return this.teamsService.getTeamPoints(color)
     }
 
-    @Post(':color/goals')
+    @Post(':color/points')
+    @ApiOkResponse({
+        description: 'Increment the points of a team',
+        content: { 'text/plain': { schema: { type: 'number' } } },
+    })
     @HttpCode(200)
-    @ApiResponse({ type: Number })
-    addTeamGoal(@Param('color') color: string) {
-        return this.teamsService.addTeamGoal(color)
+    incrementTeamPoint(@Param('color') color: string) {
+        return this.teamsService.incrementTeamPoint(color)
+    }
+
+    @Delete(':color/points')
+    @ApiOkResponse({
+        description: 'Decrement the points of a team',
+        content: { 'text/plain': { schema: { type: 'number' } } },
+    })
+    decrementTeamPoint(@Param('color') color: string) {
+        return this.teamsService.decrementTeamPoint(color)
     }
 }

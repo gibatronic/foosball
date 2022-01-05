@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { plainToClass } from 'class-transformer'
 import { LoggerService } from '../logger/logger.service'
 import { StoreService } from '../store/store.service'
+import { TransformerGroups } from '../transformer-groups.enum'
 import { Team } from './team.entity'
 
 export class TeamNotFound extends NotFoundException {
@@ -19,10 +20,18 @@ export class TeamsService {
         this.logger.setup(this.constructor.name)
     }
 
-    getTeams() {
-        this.logger.debug(`getTeams`)
+    addTeam(team: Team) {
+        team = plainToClass(Team, team, {
+            groups: [TransformerGroups.PRIVATE],
+        })
 
-        return this.store.list<Team>('team')
+        this.logger.debug(`addTeam ${team}`)
+        this.store.set(`team:${team.color}`, team)
+    }
+
+    addTeams(teams: Team[]) {
+        this.logger.debug(`addTeams ${teams.length}`)
+        teams.forEach((team) => this.addTeam(team))
     }
 
     getTeam(color: string) {
@@ -37,27 +46,23 @@ export class TeamsService {
         return team
     }
 
-    getTeamGoals(color: string) {
+    getTeams() {
+        this.logger.debug(`getTeams`)
+        return this.store.list<Team>('team')
+    }
+
+    getTeamPoints(color: string) {
         this.logger.debug(`getTeamGoals '${color}'`)
-
-        return this.getTeam(color).goals
+        return this.getTeam(color).points
     }
 
-    addTeams(teams: Team[]) {
-        this.logger.debug(`addTeams ${teams.length}`)
-        teams.forEach((team) => this.addTeam(team))
+    incrementTeamPoint(color: string) {
+        this.logger.debug(`incrementTeamPoint '${color}'`)
+        return ++this.getTeam(color).points
     }
 
-    addTeam(team: Team) {
-        team = plainToClass(Team, team)
-
-        this.logger.debug(`addTeam ${team}`)
-        this.store.set(`team:${team.color}`, team)
-    }
-
-    addTeamGoal(color: string) {
-        this.logger.debug(`addTeamGoal '${color}'`)
-
-        return ++this.getTeam(color).goals
+    decrementTeamPoint(color: string) {
+        this.logger.debug(`decrementTeamPoint '${color}'`)
+        return --this.getTeam(color).points
     }
 }
