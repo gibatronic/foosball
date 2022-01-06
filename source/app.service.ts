@@ -17,6 +17,7 @@ export class AppService {
         private readonly teams: TeamsService,
     ) {
         this.logger.setup(this.constructor.name)
+        this.logger.verbose('oh hi')
     }
 
     async bootstrap(app: NestExpressApplication) {
@@ -28,18 +29,16 @@ export class AppService {
         await app.listen(this.config.get<Config['port']>('port'))
         this.logger.log(`listening at ${await app.getUrl()}`)
 
-        process.on('SIGTERM', this.handleTerminateSignal(app))
+        process.on('SIGTERM', () => this.handleTerminateSignal(app))
         process.on('warning', (warning) => this.logger.warn(warning))
     }
 
-    handleTerminateSignal(app: NestExpressApplication) {
-        return async () => {
-            this.logger.log(
-                'got termination signal, gracefully shutting down...',
-            )
+    async handleTerminateSignal(app: NestExpressApplication) {
+        this.logger.log('got termination signal, gracefully shutting down...')
+        this.driver.teardown()
+        await app.close()
 
-            await app.close()
-        }
+        this.logger.verbose('doei')
     }
 
     setupApp(app: NestExpressApplication) {
