@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+git_diff() {
+	git diff --name-only "${DEFAULT_BRANCH}..."
+}
+
+git_status() {
+	git status --porcelain --untracked-files | egrep -v '^\s*D' | cut -c 4-
+}
+
 main() {
     if is_raspberry_pi; then
         throw 'RPI' "cannot upload from within Raspberry Pi"
@@ -20,13 +28,16 @@ main() {
     if [[ "$*" == *'--watch'* ]]; then
         watch | upload
     else
-        upload
+        sync | upload
     fi
+}
+
+sync() {
+    { git_status; git_diff; } | sort | uniq
 }
 
 upload() {
     while read event; do
-        echo "event=$event"
         if [ ! -r "$event" ]; then
             continue
         fi
@@ -37,13 +48,14 @@ upload() {
         local options=(
             '--archive'
             '--ignore-times'
-            '--relative'
             "$file"
             "$UPLOAD_SERVER:$UPLOAD_FOLDER/$file"
         )
 
+        set +e
         rsync "${options[@]}" &> "$log"
         local exit_code="$?"
+        set -e
 
         if [ "$exit_code" = '0' ]; then
             printf '✓ %s\n' "$file"

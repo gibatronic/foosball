@@ -2,8 +2,9 @@ set -e
 
 [ -r '.env' ] && source '.env'
 COVERAGE_FOLDER=$(node './tasks/get-coverage-folder.js')
+DEFAULT_BRANCH=$(git remote show origin | grep 'HEAD branch' | cut -c 16-)
 ENVIRONMENT=${ENVIRONMENT:-'development'}
-LOG_FILE=${LOG_FILE:-$(mktemp -t 'foosbal')}
+LOG_FILE=${LOG_FILE:-$(mktemp -t 'foosball.XXXXXXXXXX')}
 OUTPUT_FOLDER=$(node './tasks/get-output-folder.js')
 ROOT_FOLDER=$(node './tasks/get-root-folder.js')
 TASK=$(basename "$0")

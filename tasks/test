@@ -54,7 +54,7 @@ main() {
             ;;
     esac
 
-    ENVIRONMENT='testing' LOG_FILE="$(mktemp -t 'foosbal')" PORT='0' NODE_ENV='production' "${action[@]}"
+    ENVIRONMENT='testing' LOG_FILE="$(mktemp -t 'foosball.XXXXXXXXXX')" PORT='0' NODE_ENV='production' "${action[@]}"
 }
 
 . ./tasks/runner.sh
