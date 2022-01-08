@@ -61,6 +61,7 @@
         "test:e2e": "./tasks/test --e2e",
         "test:watch": "./tasks/test --watch",
         "tree": "./tasks/tree",
+        "upgrade": "./tasks/upgrade",
         "upload": "./tasks/upload",
         "upload:watch": "./tasks/upload --watch"
     },
