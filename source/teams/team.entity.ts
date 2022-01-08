@@ -10,7 +10,7 @@ export class Team {
     points!: number
 
     @Expose({ groups: [TransformerGroups.PRIVATE] })
-    pin!: number
+    rivalGoalPin!: number
 
     toString() {
         return `[Team ${this.color} ${this.points}]`

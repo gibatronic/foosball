@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common'
 import rpio from 'rpio'
+import { Observable, Subscriber, Subscription, throttleTime } from 'rxjs'
 import { LoggerService } from '../logger/logger.service'
+import { Team } from '../teams/team.entity'
 import { TeamsService } from '../teams/teams.service'
 
 @Injectable()
 export class DriverService {
+    private subscriptions: Subscription[] = []
+
     constructor(
         private readonly logger: LoggerService,
         private readonly teams: TeamsService,
@@ -15,45 +19,44 @@ export class DriverService {
     setup() {
         this.logger.debug('setup')
         rpio.on('warn', (message) => this.logger.warn(message))
-
-        rpio.init({
-            close_on_exit: true,
-            gpiomem: true,
-            mapping: 'physical',
-            mock: 'raspi-3',
-        })
-
-        this.setupGoals()
+        rpio.init()
+        this.teams.getTeams().forEach((team) => this.setupGoal(team))
     }
 
-    setupGoals() {
-        this.logger.debug('setupGoals')
-        const teams = this.teams.getTeams()
+    setupGoal(team: Team) {
+        this.logger.debug(`watchGoals ${team}`)
 
-        for (const team of teams) {
-            rpio.open(team.pin, rpio.INPUT, rpio.PULL_UP)
+        const producer = (observer: Subscriber<Team>) => {
+            rpio.open(team.rivalGoalPin, rpio.INPUT, rpio.PULL_UP)
 
             rpio.poll(
-                team.pin,
-                () => this.logger.debug(`${team.pin} ${team.color}`),
-                rpio.POLL_HIGH,
+                team.rivalGoalPin,
+                () => observer.next(team),
+                rpio.POLL_LOW,
             )
         }
+
+        const observable = new Observable<Team>(producer).pipe(
+            throttleTime(200),
+        )
+
+        const subscription = observable.subscribe((team) =>
+            this.teams.incrementTeamPoint(team.color),
+        )
+
+        this.subscriptions.push(subscription)
     }
 
     teardown() {
         this.logger.debug('teardown')
-        this.teardownGoals()
+        this.subscriptions.forEach((subscription) => subscription.unsubscribe())
+        this.teams.getTeams().forEach((team) => this.teardownGoal(team))
         rpio.exit()
     }
 
-    teardownGoals() {
-        this.logger.debug('teardownGoals')
-        const teams = this.teams.getTeams()
-
-        for (const team of teams) {
-            rpio.poll(team.pin, null)
-            rpio.close(team.pin)
-        }
+    teardownGoal(team: Team) {
+        this.logger.debug(`teardownGoal ${team}`)
+        rpio.poll(team.rivalGoalPin, null)
+        rpio.close(team.rivalGoalPin)
     }
 }

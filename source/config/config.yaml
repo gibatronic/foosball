@@ -8,10 +8,10 @@ base: &base
     teams:
         - color: blue
           points: 0
-          pin: 11
+          rivalGoalPin: 11
         - color: red
           points: 0
-          pin: 13
+          rivalGoalPin: 13
 
 development:
     <<: *base

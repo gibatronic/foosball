@@ -21,8 +21,9 @@ export const ConfigModule = ConfigBuilder.forRoot({
 })
 
 function loader(): Config {
-    const file = join(__dirname, 'config.yaml')
-    const config = yaml.load(readFileSync(file, 'utf8')) as ConfigFile
+    const filename = 'config.yaml'
+    const data = readFileSync(join(__dirname, filename), 'utf8')
+    const config = yaml.load(data, { filename }) as ConfigFile
 
     const environment = process.env.ENVIRONMENT as Config['environment']
     const logFile = process.env.LOG_FILE ?? null
