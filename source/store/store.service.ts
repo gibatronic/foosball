@@ -22,16 +22,4 @@ export class StoreService {
         this.logger.debug(`set '${key}' ${value}`)
         this.data.set(key, value)
     }
-
-    public list<V>(prefix: string) {
-        const values = [] as V[]
-
-        for (const [key, value] of this.data) {
-            if (key.startsWith(prefix)) {
-                values.push(value as V)
-            }
-        }
-
-        return values
-    }
 }

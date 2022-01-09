@@ -17,27 +17,17 @@ describe('TeamsController (e2e)', () => {
     })
 
     it('GET /api/teams', () => {
-        data.set('team:cyan', {
-            color: 'cyan',
-            goals: 4,
-        })
-
-        data.set('team:yellow', {
-            color: 'yellow',
-            goals: 2,
-        })
-
         return request(app.getHttpServer())
             .get('/api/teams')
             .expect(200)
             .expect([
                 {
-                    color: 'cyan',
-                    goals: 4,
+                    color: 'crimson',
+                    points: 7,
                 },
                 {
-                    color: 'yellow',
-                    goals: 2,
+                    color: 'moccasin',
+                    points: 8,
                 },
             ])
     })
@@ -45,7 +35,7 @@ describe('TeamsController (e2e)', () => {
     it('GET /api/teams/{color} 200', () => {
         data.set('team:orange', {
             color: 'orange',
-            goals: 42,
+            points: 42,
         })
 
         return request(app.getHttpServer())
@@ -53,7 +43,7 @@ describe('TeamsController (e2e)', () => {
             .expect(200)
             .expect({
                 color: 'orange',
-                goals: 42,
+                points: 42,
             })
     })
 
@@ -61,32 +51,32 @@ describe('TeamsController (e2e)', () => {
         return request(app.getHttpServer()).get('/api/teams/orange').expect(404)
     })
 
-    it('GET /api/teams/{color}/goals 200', () => {
+    it('GET /api/teams/{color}/points 200', () => {
         data.set('team:green', {
             color: 'green',
-            goals: 69,
+            points: 69,
         })
 
         return request(app.getHttpServer())
-            .get('/api/teams/green/goals')
+            .get('/api/teams/green/points')
             .expect(200)
             .expect('69')
     })
 
-    it('GET /api/teams/{color}/goals 404', () => {
+    it('GET /api/teams/{color}/points 404', () => {
         return request(app.getHttpServer())
-            .get('/api/teams/green/goals')
+            .get('/api/teams/green/points')
             .expect(404)
     })
 
-    it('POST /api/teams/{color}/goals 200', () => {
+    it('POST /api/teams/{color}/points 200', () => {
         data.set('team:violet', {
             color: 'violet',
-            goals: 11,
+            points: 11,
         })
 
         return request(app.getHttpServer())
-            .post('/api/teams/violet/goals')
+            .post('/api/teams/violet/points')
             .expect(200)
             .expect('12')
     })

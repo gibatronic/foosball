@@ -56,7 +56,7 @@ export class AppService {
         )
 
         app.useLogger(this.logger)
-        this.teams.addTeams(this.config.get<Config['teams']>('teams'))
+        this.teams.setTeams(this.config.get<Config['teams']>('teams'))
     }
 
     setupSwagger(app: NestExpressApplication) {

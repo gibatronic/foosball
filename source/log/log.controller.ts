@@ -10,6 +10,7 @@ import {
     ApiExcludeEndpoint,
     ApiInternalServerErrorResponse,
     ApiOkResponse,
+    ApiOperation,
     ApiTags,
 } from '@nestjs/swagger'
 import { Response } from 'express'
@@ -22,6 +23,7 @@ export class LogController {
     constructor(private readonly logService: LogService) {}
 
     @Get('api/log')
+    @ApiOperation({ summary: 'Show logs' })
     @ApiOkResponse({
         description: 'Every line from `LOG_FILE`',
         content: { 'text/plain': { schema: { type: 'string' } } },

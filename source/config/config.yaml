@@ -1,24 +1,30 @@
 base: &base
-    logLevels:
-        - verbose
-        - debug
-        - log
-        - warn
-        - error
-    teams:
-        - color: blue
-          points: 0
-          rivalGoalPin: 16
-        - color: red
-          points: 0
-          rivalGoalPin: 15
+  logLevels:
+    - verbose
+    - debug
+    - log
+    - warn
+    - error
+  teams:
+    - color: blue
+      points: 0
+      rivalGoalPin: 16
+    - color: red
+      points: 0
+      rivalGoalPin: 15
 
 development:
-    <<: *base
-
-production:
-    <<: *base
+  <<: *base
 
 testing:
-    <<: *base
-    teams: []
+  <<: *base
+  teams:
+    - color: crimson
+      points: 7
+      rivalGoalPin: 42
+    - color: moccasin
+      points: 8
+      rivalGoalPin: 69
+
+production:
+  <<: *base

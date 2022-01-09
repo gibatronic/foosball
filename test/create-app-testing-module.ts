@@ -1,3 +1,4 @@
+jest.mock('rpio')
 jest.mock('../source/logger/logger.service')
 
 import { NestExpressApplication } from '@nestjs/platform-express'

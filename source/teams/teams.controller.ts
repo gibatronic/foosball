@@ -1,6 +1,21 @@
-import { Controller, Delete, Get, HttpCode, Param, Post } from '@nestjs/common'
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger'
-import { instanceToInstance } from 'class-transformer'
+import {
+    ClassSerializerInterceptor,
+    Controller,
+    Delete,
+    Get,
+    HttpCode,
+    Param,
+    Post,
+    UseInterceptors,
+} from '@nestjs/common'
+import {
+    ApiNoContentResponse,
+    ApiNotFoundResponse,
+    ApiOkResponse,
+    ApiOperation,
+    ApiTags,
+} from '@nestjs/swagger'
+import { ErrorResponse } from '../error-response.interface'
 import { Team } from './team.entity'
 import { TeamsService } from './teams.service'
 
@@ -10,42 +25,65 @@ export class TeamsController {
     constructor(private readonly teamsService: TeamsService) {}
 
     @Get()
-    @ApiOkResponse({ type: [Team], description: 'List teams' })
+    @ApiOperation({ summary: 'List teams' })
+    @ApiOkResponse({ type: [Team] })
+    @UseInterceptors(ClassSerializerInterceptor)
     getTeams() {
-        return instanceToInstance(this.teamsService.getTeams())
+        return this.teamsService.getTeams()
     }
 
     @Get(':color')
-    @ApiOkResponse({ type: Team, description: 'Show a team' })
+    @ApiOperation({ summary: 'Show a team' })
+    @ApiOkResponse({ type: Team })
+    @ApiNotFoundResponse({ type: ErrorResponse })
+    @UseInterceptors(ClassSerializerInterceptor)
     getTeam(@Param('color') color: string) {
-        return instanceToInstance(this.teamsService.getTeam(color))
+        return this.teamsService.getTeam(color)
     }
 
     @Get(':color/points')
+    @ApiOperation({ summary: 'Show the points of a team' })
     @ApiOkResponse({
-        description: 'Show the points of a team',
         content: { 'text/plain': { schema: { type: 'number' } } },
     })
+    @ApiNotFoundResponse({ type: ErrorResponse })
     getTeamPoints(@Param('color') color: string) {
         return this.teamsService.getTeamPoints(color)
     }
 
     @Post(':color/points')
+    @ApiOperation({ summary: 'Increment the points of a team by 1' })
     @ApiOkResponse({
-        description: 'Increment the points of a team',
         content: { 'text/plain': { schema: { type: 'number' } } },
     })
+    @ApiNotFoundResponse({ type: ErrorResponse })
     @HttpCode(200)
-    incrementTeamPoint(@Param('color') color: string) {
-        return this.teamsService.incrementTeamPoint(color)
+    incrementTeamPoints(@Param('color') color: string) {
+        return this.teamsService.incrementTeamPoints(color)
     }
 
     @Delete(':color/points')
+    @ApiOperation({ summary: 'Decrement the points of a team by 1' })
     @ApiOkResponse({
-        description: 'Decrement the points of a team',
         content: { 'text/plain': { schema: { type: 'number' } } },
     })
-    decrementTeamPoint(@Param('color') color: string) {
-        return this.teamsService.decrementTeamPoint(color)
+    @ApiNotFoundResponse({ type: ErrorResponse })
+    decrementTeamPoints(@Param('color') color: string) {
+        return this.teamsService.decrementTeamPoints(color)
+    }
+
+    @Post(':color/points/reset')
+    @ApiOperation({
+        summary: 'Resets the points of a team to 0',
+        description:
+            'Set the `color` path parameter to `all` to reset the points of both teams',
+    })
+    @ApiNoContentResponse({
+        description: 'When resetting team points succeeds',
+    })
+    @ApiNotFoundResponse({ type: ErrorResponse })
+    @HttpCode(204)
+    resetTeamPoints(@Param('color') color: string) {
+        return this.teamsService.resetTeamPoints(color)
     }
 }

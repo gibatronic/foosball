@@ -1,4 +1,12 @@
 {
+    "overrides": [
+        {
+            "files": "*.yaml",
+            "options": {
+                "tabWidth": 2
+            }
+        }
+    ],
     "semi": false,
     "singleQuote": true,
     "tabWidth": 4,

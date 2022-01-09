@@ -24,7 +24,7 @@ export class DriverService {
     }
 
     setupGoal(team: Team) {
-        this.logger.debug(`watchGoals ${team}`)
+        this.logger.debug(`setupGoal ${team}`)
 
         const producer = (observer: Subscriber<Team>) => {
             rpio.open(team.rivalGoalPin, rpio.INPUT, rpio.PULL_UP)
@@ -41,7 +41,7 @@ export class DriverService {
         )
 
         const subscription = observable.subscribe((team) =>
-            this.teams.incrementTeamPoint(team.color),
+            this.teams.incrementTeamPoints(team.color),
         )
 
         this.subscriptions.push(subscription)
