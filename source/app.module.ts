@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { AppService } from './app.service'
 import { ConfigModule } from './config/config.module'
 import { DriverModule } from './driver/driver.module'
+import { ExceptionsProvider } from './exceptions/exceptions.provider'
 import { LogModule } from './log/log.module'
 import { LoggerModule } from './logger/logger.module'
 import { StoreModule } from './store/store.module'
@@ -16,6 +17,6 @@ import { TeamsModule } from './teams/teams.module'
         StoreModule,
         TeamsModule,
     ],
-    providers: [AppService],
+    providers: [ExceptionsProvider, AppService],
 })
 export class AppModule {}

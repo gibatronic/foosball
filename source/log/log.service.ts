@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import fs, { createReadStream } from 'fs'
 import { access } from 'fs/promises'
@@ -25,20 +25,18 @@ export class LogService {
 
     async getLogStream() {
         this.logger.debug(`getLogStream`)
-
         const logFile = this.config.get<Config['logFile']>('logFile')
 
         if (logFile === null) {
-            const exception = new Error('No log file configured')
-            this.logger.error(exception)
-            throw exception
+            throw new InternalServerErrorException('No log file configured')
         }
 
         try {
             await access(logFile, fs.constants.W_OK)
         } catch (exception) {
-            this.logger.error(exception)
-            throw new Error(`Unable to read log file ${logFile}`)
+            throw new InternalServerErrorException(
+                `Unable to read log file '${logFile}'`,
+            )
         }
 
         let logStream
@@ -46,8 +44,9 @@ export class LogService {
         try {
             logStream = createReadStream(logFile)
         } catch (exception) {
-            this.logger.error(exception)
-            throw new Error(`Unable to stream log file ${logFile}`)
+            throw new InternalServerErrorException(
+                `Unable to stream log file ${logFile}`,
+            )
         }
 
         return logStream

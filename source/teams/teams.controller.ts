@@ -15,7 +15,7 @@ import {
     ApiOperation,
     ApiTags,
 } from '@nestjs/swagger'
-import { ErrorResponse } from '../error-response.interface'
+import { ErrorResponse } from '../exceptions/error-response.interface'
 import { Team } from './team.entity'
 import { TeamsService } from './teams.service'
 

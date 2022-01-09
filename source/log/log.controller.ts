@@ -1,11 +1,4 @@
-import {
-    Controller,
-    Get,
-    HttpStatus,
-    InternalServerErrorException,
-    Render,
-    Res,
-} from '@nestjs/common'
+import { Controller, Get, Render, Res } from '@nestjs/common'
 import {
     ApiExcludeEndpoint,
     ApiInternalServerErrorResponse,
@@ -14,7 +7,7 @@ import {
     ApiTags,
 } from '@nestjs/swagger'
 import { Response } from 'express'
-import { ErrorResponse } from '../error-response.interface'
+import { ErrorResponse } from '../exceptions/error-response.interface'
 import { LogService } from './log.service'
 
 @Controller()
@@ -33,28 +26,7 @@ export class LogController {
         description: 'When `LOG_FILE` fails to open for reading and streaming',
     })
     async apiLog(@Res() response: Response) {
-        let logStream
-
-        try {
-            logStream = await this.logService.getLogStream()
-        } catch (exception) {
-            let description
-
-            if (exception instanceof Error) {
-                description = exception.message
-            } else {
-                description = JSON.stringify(exception)
-            }
-
-            response
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .json(
-                    new InternalServerErrorException(description).getResponse(),
-                )
-
-            return
-        }
-
+        const logStream = await this.logService.getLogStream()
         response.type('text')
         logStream.pipe(response)
     }
