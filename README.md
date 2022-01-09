@@ -10,8 +10,8 @@ You can set them in a `.env` file. These are the possible variables:
 
 ```bash
 # run mode, either development or production, affecting
-# which configuration is loaded and if should watch for
-# file changes
+# which configuration is loaded and if it should watch
+# for file changes
 ENVIRONMENT='development'
 
 # where logs should be written to when running in
@@ -21,10 +21,10 @@ LOG_FILE=''
 # port number to listen to, set to zero for randomness
 PORT='4269'
 
-# where's the Raspberry Pi's project folder
+# project folder location inside the Raspberry Pi
 UPLOAD_FOLDER='~/foosball'
 
-# what's the Raspberry Pi's SSH destination
+# SSH destination to the Raspberry Pi
 # works best with public key authentication
 UPLOAD_SERVER='pi@raspberrypi.local'
 ```
