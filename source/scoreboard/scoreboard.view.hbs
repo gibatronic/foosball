@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Foosball</title>
+
+        <meta name="version" content="{{version}}">
+        <meta name="viewport" content="initial-scale=1, shrink-to-fit=no, viewport-fit=cover, width=device-width, height=device-height">
+
+        <style>
+            :root {
+                --color-team-a: {{teamA.colorForWeb}};
+                --color-team-b: {{teamB.colorForWeb}};
+                --color-score: #FFFFFF;
+            }
+
+            .goal--a {
+                --color-score: var(--color-team-a);
+            }
+
+            .goal--b {
+                --color-score: var(--color-team-b);
+            }
+
+            @keyframes marquee {
+                0% {
+                    text-shadow: 0 0 0 rgb(255 255 255 / 0), 0 0 0 rgb(255 255 255 / 0);
+                    transform: translate(0, -100%) rotate(5deg);
+                }
+
+                25% {
+                    text-shadow: 0 0.1em 0 rgb(var(--color-score) / 0.75), 0 0.2em 0 rgb(var(--color-score) / 0.5);
+                    transform: translate(0, 100%) rotate(-5deg);
+                }
+
+                50% {
+                    text-shadow: 0 -0.1em 0 rgb(var(--color-score) / 0.75), 0 -0.2em 0 rgb(var(--color-score) / 0.5);
+                    transform: translate(0, 0) rotate(5deg);
+                }
+
+                75% {
+                    text-shadow: 0 0.1em 0 rgb(var(--color-score) / 0.75), 0 0.2em 0 rgb(var(--color-score) / 0.5);
+                    transform: translate(0, 100%) rotate(-5deg);
+                }
+
+                100% {
+                    text-shadow: 0 0 0 rgb(255 255 255 / 0), 0 0 0 rgb(255 255 255 / 0);
+                    transform: translate(0, -100%) rotate(5deg);
+                }
+            }
+
+            @keyframes increment {
+                0% {
+                    transform: scale3d(1, 1, 1);
+                }
+
+                10%,
+                20% {
+                    transform: scale3d(0.9, 0.9, 0.9) rotate3d(0, 0, 1, -3deg);
+                }
+
+                30%,
+                50%,
+                70%,
+                90% {
+                    transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, 3deg);
+                }
+
+                40%,
+                60%,
+                80% {
+                    transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, -3deg);
+                }
+
+                100% {
+                    transform: scale3d(1, 1, 1);
+                }
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                display: flex;
+                flex-grow: 1;
+                margin: 0;
+            }
+
+            html {
+                background-color: #000000;
+                color: #FFFFFF;
+                cursor: none;
+                display: flex;
+                font-family: 'SF Compact Rounded', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+                font-size: 100%;
+                min-height: 100%;
+            }
+
+            main {
+                display: flex;
+                flex-grow: 1;
+            }
+
+            .marquee {
+                position: absolute;
+                top: 0;
+                right: 0;
+                left: 0;
+                display: flex;
+                justify-content: center;
+                gap: min(0.2vw, 0.4vh);
+                font-size: min(10vw, 20vh);
+                font-weight: 500;
+                width: auto;
+            }
+
+            .marquee__letter {
+                animation-delay: 0;
+                animation-direction: normal;
+                animation-duration: 3s;
+                animation-fill-mode: both;
+                animation-iteration-count: 1;
+                animation-timing-function: ease-in-out;
+                transform: translate(0, -100%) rotate(5deg);
+            }
+
+            .goal .marquee__letter {
+                animation-name: marquee;
+            }
+
+            .marquee__letter:nth-child(1)  { animation-delay: 0.0s }
+            .marquee__letter:nth-child(2)  { animation-delay: 0.1s }
+            .marquee__letter:nth-child(3)  { animation-delay: 0.2s }
+            .marquee__letter:nth-child(4)  { animation-delay: 0.3s }
+            .marquee__letter:nth-child(5)  { animation-delay: 0.4s }
+            .marquee__letter:nth-child(6)  { animation-delay: 0.5s }
+            .marquee__letter:nth-child(7)  { animation-delay: 0.6s }
+            .marquee__letter:nth-child(8)  { animation-delay: 0.7s }
+            .marquee__letter:nth-child(9)  { animation-delay: 0.8s }
+            .marquee__letter:nth-child(10) { animation-delay: 0.9s }
+
+            .points {
+                display: flex;
+                align-items: stretch;
+                flex-grow: 1;
+                justify-content: center;
+            }
+
+            .points__team,
+            .points__versus {
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-basis: 0;
+            }
+
+            .points__team {
+                position: relative;
+                animation-delay: 0;
+                animation-direction: normal;
+                animation-duration: 0.75s;
+                animation-fill-mode: both;
+                animation-iteration-count: 1;
+                animation-timing-function: linear;
+                flex-grow: 1;
+                font-size: min(40vw, 60vh);
+                padding-inline: 5vw;
+                text-shadow: 0 0 32px rgb(0 0 0), 0 0 96px rgb(0 0 0);
+            }
+
+            .points__team--a {
+                justify-content: flex-end;
+                color: rgb(var(--color-team-a) / 1);
+                transform-origin: center right;
+            }
+
+            .points__team--b {
+                justify-content: flex-start;
+                color: rgb(var(--color-team-b) / 1);
+                transform-origin: center left;
+            }
+
+            .points__versus {
+                color: #FFFFFFDD;
+                font-size: min(10vw, 20vh);
+                font-weight: 100;
+            }
+
+            .goal--a .points__team--a,
+            .goal--b .points__team--b {
+                animation-name: increment;
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <div class="marquee" hidden>
+                <span class="marquee__letter">G</span>
+                <span class="marquee__letter">o</span>
+                <span class="marquee__letter">o</span>
+                <span class="marquee__letter">o</span>
+                <span class="marquee__letter">a</span>
+                <span class="marquee__letter">a</span>
+                <span class="marquee__letter">a</span>
+                <span class="marquee__letter">l</span>
+                <span class="marquee__letter">l</span>
+                <span class="marquee__letter">l</span>
+            </div>
+            <div class="points">
+                <span class="points__team points__team--a">{{teamA.points}}</span>
+                <span class="points__versus">&#215;</span>
+                <span class="points__team points__team--b">{{teamB.points}}</span>
+            </div>
+        </main>
+
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
+        <script>
+            function toHex(colorForWeb) {
+                return '#' + colorForWeb
+                    .split(' ')
+                    .map((component) => parseInt(component, 10).toString(16))
+                    .join('')
+            }
+
+            class Main {
+                animation
+                elements
+
+                state = {
+                    teamColorA: toHex('{{teamA.colorForWeb}}'),
+                    teamColorB: toHex('{{teamB.colorForWeb}}'),
+                    teamPointsA: {{teamA.points}},
+                    teamPointsB: {{teamB.points}},
+                }
+
+                constructor() {
+                    this.elements = this.getElements()
+                    this.getEventSource().addEventListener('message', ({ data }) => this.update(JSON.parse(data)))
+                }
+
+                async animate(letter, scoreColor) {
+                    const random = (min, max) => {
+                        min = Math.ceil(min);
+                        max = Math.floor(max);
+                        return Math.floor(Math.random() * (max - min + 1) + min);
+                    }
+
+                    const shoot = (angle, scalar) => {
+                        confetti({
+                            particleCount: random(5, 10),
+                            angle: random(angle - 5, angle + 5),
+                            spread: random(35, 55),
+                            startVelocity: random(35, 55),
+                            colors: ['#FFFFFF', scoreColor, scoreColor],
+                            scalar,
+                        });
+                    }
+
+                    for (let index = 0; index < 9; index++) {
+                        setTimeout(shoot, random(0, 200), index * 22.5, random(28, 32) / 10)
+                        setTimeout(shoot, random(100, 300), index * 22.5, random(18, 22) / 10)
+                    }
+
+                    document.documentElement.classList.add('goal', `goal--${letter.toLowerCase()}`)
+
+                    await new Promise((resolve) => {
+                        this.elements.marqueeLetters.at(-1).addEventListener('animationend', resolve)
+                    })
+
+                    document.documentElement.classList.remove('goal', `goal--${letter.toLowerCase()}`)
+                }
+
+                getElements() {
+                    return {
+                        marqueeLetters: Array.from(document.querySelectorAll('.marquee__letter')),
+                        teamPointsA: document.querySelector('.points__team--a'),
+                        teamPointsB: document.querySelector('.points__team--b'),
+                    }
+                }
+
+                getEventSource() {
+                    return new EventSource('sse')
+                }
+
+                update(data) {
+                    if (data?.teamPointsA !== undefined && data.teamPointsA !== this.state.teamPointsA) {
+                        this.updateTeamPoints('A', data.teamPointsA)
+                    }
+
+                    if (data?.teamPointsB !== undefined && data.teamPointsB !== this.state.teamPointsB) {
+                        this.updateTeamPoints('B', data.teamPointsB)
+                    }
+                }
+
+                updateTeamPoints(letter, points) {
+                    this.elements[`teamPoints${letter}`].textContent = points
+
+                    if (points > this.state[`teamPoints${letter}`]) {
+                        this.animate(letter, this.state[`teamColor${letter}`])
+                    }
+
+                    this.state[`teamPoints${letter}`] = points
+                }
+            }
+
+            const main = new Main()
+        </script>
+    </body>
+</html>
