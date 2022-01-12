@@ -1,8 +1,7 @@
 import { Provider } from '@nestjs/common'
-
-export const DATA = Symbol('DATA')
+import { DATA_PROVIDER } from './constants'
 
 export const DataProvider = {
-    provide: DATA,
+    provide: DATA_PROVIDER,
     useValue: new Map<string, unknown>(),
 } as Provider<Map<string, unknown>>

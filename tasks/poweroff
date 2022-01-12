@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 main() {
-    local action='{ sleep 5; sudo poweroff --no-wall; } &'
+    local action='{ sleep 5; sudo poweroff --no-wall; } & exit'
 
     if is_raspberry_pi; then
         "$action"

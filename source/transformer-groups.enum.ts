@@ -1,3 +1,3 @@
 export enum TransformerGroups {
-    PRIVATE = 'PRIVATE',
+    INTERNAL = 'INTERNAL',
 }

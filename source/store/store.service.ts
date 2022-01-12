@@ -1,13 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { LoggerService } from '../logger/logger.service'
-import { DATA } from './data.provider'
+import { DATA_PROVIDER } from './constants'
 
 @Injectable()
 export class StoreService {
     constructor(
         private readonly logger: LoggerService,
 
-        @Inject(DATA)
+        @Inject(DATA_PROVIDER)
         private readonly data: Map<string, unknown>,
     ) {
         this.logger.setup(this.constructor.name)

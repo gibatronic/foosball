@@ -5,7 +5,7 @@ import { NestExpressApplication } from '@nestjs/platform-express'
 import { Test, TestingModule } from '@nestjs/testing'
 import { AppModule } from '../source/app.module'
 import { AppService } from '../source/app.service'
-import { DATA } from '../source/store/data.provider'
+import { DATA_PROVIDER } from '../source/store/constants'
 
 export async function createAppTestingModule() {
     const data = new Map<string, unknown>()
@@ -13,7 +13,7 @@ export async function createAppTestingModule() {
     const module: TestingModule = await Test.createTestingModule({
         imports: [AppModule],
     })
-        .overrideProvider(DATA)
+        .overrideProvider(DATA_PROVIDER)
         .useValue(data)
         .compile()
 

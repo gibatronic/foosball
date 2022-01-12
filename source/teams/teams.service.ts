@@ -1,15 +1,21 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import {
+    forwardRef,
+    Inject,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { instanceToInstance, plainToClass } from 'class-transformer'
 import { Config } from '../config/config.entity'
 import { LoggerService } from '../logger/logger.service'
+import { ScoreboardService } from '../scoreboard/scoreboard.service'
 import { StoreService } from '../store/store.service'
 import { TransformerGroups } from '../transformer-groups.enum'
 import { Team } from './team.entity'
 
-export class TeamNotFound extends NotFoundException {
-    constructor(color: string) {
-        super(`No team with color "${color}" was found`, 'Team Not Found')
+export class UnknownTeam extends NotFoundException {
+    constructor(name: string) {
+        super(`Unknown "${name}" team`, 'Unknown Team')
     }
 }
 
@@ -19,84 +25,81 @@ export class TeamsService {
         private readonly config: ConfigService<Config, true>,
         private readonly logger: LoggerService,
         private readonly store: StoreService,
+
+        @Inject(forwardRef(() => ScoreboardService))
+        private readonly scoreboard: ScoreboardService,
     ) {
         this.logger.setup(this.constructor.name)
     }
 
     setTeam(team: Team) {
         team = plainToClass(Team, team, {
-            groups: [TransformerGroups.PRIVATE],
+            groups: [TransformerGroups.INTERNAL],
         })
 
         this.logger.debug(`setTeam ${team}`)
-        this.store.set(`team:${team.color}`, team)
+        this.store.set(`team:${team.name}`, team)
+
+        return team
     }
 
     setTeams(teams: Team[]) {
         this.logger.debug(`setTeams ${teams.length}`)
-        teams.forEach((team) => this.setTeam(team))
+        return teams.map((team) => this.setTeam(team))
     }
 
-    getTeam(color: string) {
-        this.logger.debug(`getTeam '${color}'`)
-        const team = this.store.get<Team>(`team:${color}`)
+    getTeam(name: string) {
+        this.logger.debug(`getTeam '${name}'`)
+        const team = this.store.get<Team>(`team:${name}`)
 
         if (team === null) {
-            throw new TeamNotFound(color)
+            throw new UnknownTeam(name)
         }
 
         return instanceToInstance(team, {
-            groups: [TransformerGroups.PRIVATE],
+            groups: [TransformerGroups.INTERNAL],
         })
     }
 
     getTeams() {
-        this.logger.debug(`getTeams`)
+        this.logger.debug('getTeams')
         const teams = this.config.get<Config['teams']>('teams')
-        return teams.map(({ color }) => this.getTeam(color))
+        return teams.map(({ name }) => this.getTeam(name))
     }
 
-    getTeamPoints(color: string) {
-        this.logger.debug(`getTeamPoints '${color}'`)
-        return this.getTeam(color).points
-    }
+    incrementTeamPoints(name: string) {
+        this.logger.debug(`incrementTeamPoints '${name}'`)
 
-    incrementTeamPoints(color: string) {
-        this.logger.debug(`incrementTeamPoints '${color}'`)
-
-        const team = this.getTeam(color)
+        const team = this.getTeam(name)
         team.points = team.points + 1
-        this.setTeam(team)
 
-        return team.points
+        this.setTeam(team)
+        this.scoreboard.sseUpdateTeamPoints()
+
+        return team
     }
 
-    decrementTeamPoints(color: string) {
-        this.logger.debug(`decrementTeamPoints '${color}'`)
+    decrementTeamPoints(name: string) {
+        this.logger.debug(`decrementTeamPoints '${name}'`)
 
-        const team = this.getTeam(color)
+        const team = this.getTeam(name)
         team.points = Math.max(0, team.points - 1)
-        this.setTeam(team)
 
-        return team.points
+        this.setTeam(team)
+        this.scoreboard.sseUpdateTeamPoints()
+
+        return team
     }
 
-    resetTeamPoints(color: string) {
-        this.logger.debug(`resetTeamPoints '${color}'`)
+    resetTeamPoints(name: string) {
+        this.logger.debug(`resetTeamPoints '${name}'`)
 
-        if (color === 'all') {
-            this.setTeams(
-                this.getTeams().map((team) => {
-                    team.points = 0
-                    return team
-                }),
-            )
-
-            return
-        }
-
-        const team = this.getTeam(color)
+        const team = this.getTeam(name)
         team.points = 0
+
         this.setTeam(team)
+        this.scoreboard.sseUpdateTeamPoints()
+
+        return team
     }
 }

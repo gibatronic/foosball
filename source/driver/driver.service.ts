@@ -41,7 +41,7 @@ export class DriverService {
         )
 
         const subscription = observable.subscribe((team) =>
-            this.teams.incrementTeamPoints(team.color),
+            this.teams.incrementTeamPoints(team.name),
         )
 
         this.subscriptions.push(subscription)

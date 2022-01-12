@@ -16,7 +16,7 @@ export class LogService {
     }
 
     getViewData(): LogViewData {
-        this.logger.debug(`getViewData`)
+        this.logger.debug('getViewData')
 
         return {
             version: this.config.get<Config['version']>('version'),
@@ -24,7 +24,7 @@ export class LogService {
     }
 
     async getLogStream() {
-        this.logger.debug(`getLogStream`)
+        this.logger.debug('getLogStream')
         const logFile = this.config.get<Config['logFile']>('logFile')
 
         if (logFile === null) {

@@ -6,10 +6,12 @@ base: &base
     - warn
     - error
   teams:
-    - color: blue
+    - name: blue
+      color: [52, 152, 219]
       points: 0
       rivalGoalPin: 16
-    - color: red
+    - name: red
+      color: [231, 76, 60]
       points: 0
       rivalGoalPin: 15
 
@@ -19,10 +21,12 @@ development:
 testing:
   <<: *base
   teams:
-    - color: crimson
+    - name: amethyst
+      color: [155, 89, 182]
       points: 7
       rivalGoalPin: 42
-    - color: moccasin
+    - name: emerald
+      color: [46, 204, 113]
       points: 8
       rivalGoalPin: 69
 

@@ -6,7 +6,7 @@ Raspberry Pi project to keep track of scores in my foosball table.
 
 ## Enviroment Variables
 
-You can set them in a `.env` file. These are the possible variables:
+You can set them in a `.env` file, at the root of the project:
 
 ```bash
 # run mode, either development or production, affecting

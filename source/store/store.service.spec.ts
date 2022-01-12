@@ -2,7 +2,7 @@ jest.mock('../logger/logger.service')
 
 import { Test, TestingModule } from '@nestjs/testing'
 import { LoggerService } from '../logger/logger.service'
-import { DATA } from './data.provider'
+import { DATA_PROVIDER } from './constants'
 import { StoreService } from './store.service'
 
 describe('StoreService', () => {
@@ -14,7 +14,7 @@ describe('StoreService', () => {
 
         const module: TestingModule = await Test.createTestingModule({
             providers: [
-                { provide: DATA, useValue: data },
+                { provide: DATA_PROVIDER, useValue: data },
                 LoggerService,
                 StoreService,
             ],

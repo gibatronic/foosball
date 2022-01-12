@@ -37,7 +37,6 @@ export class AppService {
         this.logger.log('got termination signal, gracefully shutting down...')
         this.driver.teardown()
         await app.close()
-
         this.logger.verbose('doei')
     }
 
@@ -51,6 +50,10 @@ export class AppService {
                 transform: true,
                 transformOptions: {
                     exposeDefaultValues: true,
+
+                    // must never be enabled because it fails to handle booleans
+                    // https://github.com/typestack/class-transformer/issues/550
+                    enableImplicitConversion: false,
                 },
             }),
         )
@@ -78,10 +81,10 @@ export class AppService {
     }
 
     setupViews(app: NestExpressApplication) {
-        const log = join(__dirname, 'log')
+        const folders = ['log', 'scoreboard']
+        const paths = folders.map((folder) => join(__dirname, folder))
 
-        app.setBaseViewsDir(log)
-        app.useStaticAssets(log)
+        app.setBaseViewsDir(paths)
         app.setViewEngine('hbs')
     }
 }

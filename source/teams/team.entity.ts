@@ -4,15 +4,22 @@ import { TransformerGroups } from '../transformer-groups.enum'
 
 export class Team {
     @ApiProperty()
-    color!: string
+    name!: string
+
+    @ApiProperty({ type: [Number] })
+    color!: [number, number, number]
 
     @ApiProperty()
     points!: number
 
-    @Expose({ groups: [TransformerGroups.PRIVATE] })
+    @Expose({ groups: [TransformerGroups.INTERNAL] })
     rivalGoalPin!: number
 
+    get colorForWeb() {
+        return this.color.join(' ')
+    }
+
     toString() {
-        return `[Team ${this.color} ${this.points}]`
+        return `[Team ${this.name} ${this.points}]`
     }
 }
