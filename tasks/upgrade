@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Discards any changes and synchronizes the Raspberry
-# Pi's project folder with the latests changes
+# Discards any changes and synchronizes the Raspberry Pi's project folder with the latests changes
 
 main() {
 	if ! is_raspberry_pi; then
@@ -16,6 +15,7 @@ main() {
 	git reset .
 	git clean -f
 	git checkout "$DEFAULT_BRANCH"
+	git reset --hard "origin/$DEFAULT_BRANCH"
 	git pull --ff-only
 }
 
