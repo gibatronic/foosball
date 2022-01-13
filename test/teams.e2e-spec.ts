@@ -6,10 +6,14 @@ describe('TeamsController (e2e)', () => {
     let app: INestApplication
     let data: Map<string, unknown>
 
-    beforeEach(async () => {
+    beforeAll(async () => {
         ;({ app, data } = await createAppTestingModule())
 
         await app.init()
+    })
+
+    beforeEach(() => {
+        data.clear()
     })
 
     afterAll(async () => {
@@ -17,6 +21,18 @@ describe('TeamsController (e2e)', () => {
     })
 
     it('GET /api/teams', () => {
+        data.set('team:amethyst', {
+            name: 'amethyst',
+            color: [155, 89, 182],
+            points: 7,
+        })
+
+        data.set('team:emerald', {
+            name: 'emerald',
+            color: [46, 204, 113],
+            points: 8,
+        })
+
         return request(app.getHttpServer())
             .get('/api/teams')
             .expect(200)

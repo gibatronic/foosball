@@ -85,6 +85,7 @@ export class AppService {
         const paths = folders.map((folder) => join(__dirname, folder))
 
         app.setBaseViewsDir(paths)
+        paths.forEach((path) => app.useStaticAssets(path))
         app.setViewEngine('hbs')
     }
 }

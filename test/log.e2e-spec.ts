@@ -5,7 +5,7 @@ import { createAppTestingModule } from './create-app-testing-module'
 describe('TeamsController (e2e)', () => {
     let app: INestApplication
 
-    beforeEach(async () => {
+    beforeAll(async () => {
         ;({ app } = await createAppTestingModule())
 
         await app.init()

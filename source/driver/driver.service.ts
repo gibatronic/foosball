@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common'
+import { EventEmitter2 } from '@nestjs/event-emitter'
 import rpio from 'rpio'
-import { Observable, Subscriber, Subscription, throttleTime } from 'rxjs'
+import { Subscription } from 'rxjs'
+import { EVENT_GOAL } from '../event-emitter/constants'
 import { LoggerService } from '../logger/logger.service'
 import { Team } from '../teams/team.entity'
 import { TeamsService } from '../teams/teams.service'
@@ -10,6 +12,7 @@ export class DriverService {
     private subscriptions: Subscription[] = []
 
     constructor(
+        private readonly eventEmitter: EventEmitter2,
         private readonly logger: LoggerService,
         private readonly teams: TeamsService,
     ) {
@@ -25,26 +28,9 @@ export class DriverService {
 
     setupGoal(team: Team) {
         this.logger.debug(`setupGoal ${team}`)
-
-        const producer = (observer: Subscriber<Team>) => {
-            rpio.open(team.rivalGoalPin, rpio.INPUT, rpio.PULL_UP)
-
-            rpio.poll(
-                team.rivalGoalPin,
-                () => observer.next(team),
-                rpio.POLL_LOW,
-            )
-        }
-
-        const observable = new Observable<Team>(producer).pipe(
-            throttleTime(200),
-        )
-
-        const subscription = observable.subscribe((team) =>
-            this.teams.incrementTeamPoints(team.name),
-        )
-
-        this.subscriptions.push(subscription)
+        const callback = () => this.eventEmitter.emit(EVENT_GOAL, team.name)
+        rpio.open(team.rivalGoalPin, rpio.INPUT, rpio.PULL_UP)
+        rpio.poll(team.rivalGoalPin, callback, rpio.POLL_LOW)
     }
 
     teardown() {

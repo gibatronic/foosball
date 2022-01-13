@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { AppService } from './app.service'
 import { ConfigModule } from './config/config.module'
 import { DriverModule } from './driver/driver.module'
+import { EventEmitterModule } from './event-emitter/event-emitter.module'
 import { ExceptionsProvider } from './exceptions/exceptions.provider'
 import { LogModule } from './log/log.module'
 import { LoggerModule } from './logger/logger.module'
@@ -13,6 +14,7 @@ import { TeamsModule } from './teams/teams.module'
     imports: [
         ConfigModule,
         DriverModule,
+        EventEmitterModule,
         LoggerModule,
         LogModule,
         ScoreboardModule,

@@ -1,118 +1,68 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { Observable, Subscriber } from 'rxjs'
+import { EventEmitter2 } from '@nestjs/event-emitter'
+import { instanceToPlain } from 'class-transformer'
+import { fromEventPattern, map, Observable } from 'rxjs'
+import { NodeEventHandler } from 'rxjs/internal/observable/fromEvent'
 import { Config } from '../config/config.entity'
+import { EVENT_TEAM } from '../event-emitter/constants'
 import { LoggerService } from '../logger/logger.service'
 import { Team } from '../teams/team.entity'
 import { TeamsService } from '../teams/teams.service'
+import { TransformerGroups } from '../transformer-groups.enum'
 import { ScoreboardMessageEvent, ScoreboardViewData } from './scoreboard.entity'
 
 @Injectable()
 export class ScoreboardService {
-    private sseCache = {
-        teamPointsA: 0,
-        teamPointsB: 0,
-    }
-
-    private sseState = {
-        teamPointsA: 0,
-        teamPointsB: 0,
-    }
-
     constructor(
         private readonly config: ConfigService<Config, true>,
+        private readonly eventEmitter: EventEmitter2,
         private readonly logger: LoggerService,
-
-        @Inject(forwardRef(() => TeamsService))
         private readonly teams: TeamsService,
     ) {
         this.logger.setup(this.constructor.name)
     }
 
-    private getTeams() {
-        const [teamA, teamB] = this.teams.getTeams().sort(this.sortByTeamName)
-        return { teamA, teamB }
-    }
-
     getViewData(): ScoreboardViewData {
         this.logger.debug('getViewData')
-        const { teamA, teamB } = this.getTeams()
+        const serialize = (team: Team) =>
+            instanceToPlain(team, {
+                groups: [TransformerGroups.EXTERNAL],
+            }) as Team
+
+        const teamList = this.teams.getTeams().map(serialize)
+        const teamMap = teamList.reduce((teams, team) => {
+            teams[team.name] = team
+            return teams
+        }, {} as Record<string, Team>)
 
         return {
-            teamA,
-            teamB,
+            serializedTeamMap: JSON.stringify(teamMap),
+            teams: teamList,
             version: this.config.get<Config['version']>('version'),
         }
     }
 
-    private sortByTeamName(a: Team, b: Team) {
-        return a.name.localeCompare(b.name)
-    }
+    streamEvents() {
+        this.logger.debug('streamEvents')
 
-    sse() {
-        this.logger.debug('sse')
+        const addHandler = (handler: NodeEventHandler) =>
+            this.eventEmitter.on(EVENT_TEAM, handler)
 
-        const {
-            teamA: { points: teamPointsA },
-            teamB: { points: teamPointsB },
-        } = this.getTeams()
+        const removeHandler = (handler: NodeEventHandler) =>
+            this.eventEmitter.off(EVENT_TEAM, handler)
 
-        this.sseCache.teamPointsA = teamPointsA
-        this.sseCache.teamPointsB = teamPointsB
+        const transformHandler = (team: Team) => ({
+            data: instanceToPlain(team, {
+                groups: [TransformerGroups.EXTERNAL],
+            }) as Team,
+        })
 
-        this.sseState.teamPointsA = teamPointsA
-        this.sseState.teamPointsB = teamPointsB
+        const observable: Observable<ScoreboardMessageEvent> =
+            fromEventPattern<Team>(addHandler, removeHandler).pipe(
+                map(transformHandler),
+            )
 
-        return new Observable<ScoreboardMessageEvent>((observer) =>
-            this.sseWatch(observer),
-        )
-    }
-
-    sseUpdateTeamPoints() {
-        this.logger.debug('sseUpdateTeamPoints')
-
-        const {
-            teamA: { points: teamPointsA },
-            teamB: { points: teamPointsB },
-        } = this.getTeams()
-
-        if (this.sseState.teamPointsA !== teamPointsA) {
-            this.sseState.teamPointsA = teamPointsA
-        }
-
-        if (this.sseState.teamPointsB !== teamPointsB) {
-            this.sseState.teamPointsB = teamPointsB
-        }
-    }
-
-    private sseWatch(observer: Subscriber<ScoreboardMessageEvent>) {
-        this.logger.debug('sseWatch')
-
-        const tick = () => {
-            const data: ScoreboardMessageEvent['data'] = {}
-
-            if (this.sseCache.teamPointsA !== this.sseState.teamPointsA) {
-                this.sseCache.teamPointsA = this.sseState.teamPointsA
-                data.teamPointsA = this.sseState.teamPointsA
-            }
-
-            if (this.sseCache.teamPointsB !== this.sseState.teamPointsB) {
-                this.sseCache.teamPointsB = this.sseState.teamPointsB
-                data.teamPointsB = this.sseState.teamPointsB
-            }
-
-            if (Object.keys(data).length) {
-                this.logger.debug(`sseWatch ${JSON.stringify(data)}`)
-                observer.next({ data })
-            }
-
-            if (observer.closed) {
-                return
-            }
-
-            setTimeout(tick)
-        }
-
-        setTimeout(tick)
+        return observable
     }
 }

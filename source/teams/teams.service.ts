@@ -1,14 +1,10 @@
-import {
-    forwardRef,
-    Inject,
-    Injectable,
-    NotFoundException,
-} from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter'
 import { instanceToInstance, plainToClass } from 'class-transformer'
 import { Config } from '../config/config.entity'
+import { EVENT_GOAL, EVENT_TEAM } from '../event-emitter/constants'
 import { LoggerService } from '../logger/logger.service'
-import { ScoreboardService } from '../scoreboard/scoreboard.service'
 import { StoreService } from '../store/store.service'
 import { TransformerGroups } from '../transformer-groups.enum'
 import { Team } from './team.entity'
@@ -23,11 +19,9 @@ export class UnknownTeam extends NotFoundException {
 export class TeamsService {
     constructor(
         private readonly config: ConfigService<Config, true>,
+        private readonly eventEmitter: EventEmitter2,
         private readonly logger: LoggerService,
         private readonly store: StoreService,
-
-        @Inject(forwardRef(() => ScoreboardService))
-        private readonly scoreboard: ScoreboardService,
     ) {
         this.logger.setup(this.constructor.name)
     }
@@ -39,6 +33,7 @@ export class TeamsService {
 
         this.logger.debug(`setTeam ${team}`)
         this.store.set(`team:${team.name}`, team)
+        this.eventEmitter.emit(EVENT_TEAM, team)
 
         return team
     }
@@ -67,39 +62,25 @@ export class TeamsService {
         return teams.map(({ name }) => this.getTeam(name))
     }
 
+    @OnEvent(EVENT_GOAL)
     incrementTeamPoints(name: string) {
         this.logger.debug(`incrementTeamPoints '${name}'`)
-
         const team = this.getTeam(name)
         team.points = team.points + 1
-
-        this.setTeam(team)
-        this.scoreboard.sseUpdateTeamPoints()
-
-        return team
+        return this.setTeam(team)
     }
 
     decrementTeamPoints(name: string) {
         this.logger.debug(`decrementTeamPoints '${name}'`)
-
         const team = this.getTeam(name)
         team.points = Math.max(0, team.points - 1)
-
-        this.setTeam(team)
-        this.scoreboard.sseUpdateTeamPoints()
-
-        return team
+        return this.setTeam(team)
     }
 
     resetTeamPoints(name: string) {
         this.logger.debug(`resetTeamPoints '${name}'`)
-
         const team = this.getTeam(name)
         team.points = 0
-
-        this.setTeam(team)
-        this.scoreboard.sseUpdateTeamPoints()
-
-        return team
+        return this.setTeam(team)
     }
 }

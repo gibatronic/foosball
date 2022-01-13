@@ -13,16 +13,16 @@ export class ScoreboardController {
         return this.scoreboardService.getViewData()
     }
 
+    @Sse('event-stream')
+    @ApiExcludeEndpoint()
+    streamEvents() {
+        return this.scoreboardService.streamEvents()
+    }
+
     @Get('favicon.ico')
     @ApiExcludeEndpoint()
     @HttpCode(204)
     noop() {
         return
-    }
-
-    @Sse('sse')
-    @ApiExcludeEndpoint()
-    sse() {
-        return this.scoreboardService.sse()
     }
 }
