@@ -26,21 +26,23 @@ function parseTextContent(element) {
 
 class Main {
     elements = {}
+    messagesConnectionErrors = 0
     teamList = []
     teamMap = {}
 
     constructor(teamMap) {
+        console.debug('constructor', teamMap)
+
         this.teamMap = teamMap ?? {}
         this.teamList = Object.values(this.teamMap)
         this.elements = getElements(this.teamList)
 
-        return new EventSource('event-stream').addEventListener(
-            'message',
-            ({ data }) => this.update(JSON.parse(data)),
-        )
+        this.setupMessages()
     }
 
     async animate(team) {
+        console.debug('update', team)
+
         const random = (min, max) => {
             min = Math.ceil(min)
             max = Math.floor(max)
@@ -84,7 +86,42 @@ class Main {
         document.documentElement.classList.remove('goal', `goal--${team.name}`)
     }
 
+    setupMessages() {
+        console.debug('setupMessages')
+        const messages = new EventSource('event-stream')
+
+        const open = (event) => {
+            console.debug('event-stream', event)
+            this.messagesConnectionErrors = 0
+        }
+
+        const team = (event) => {
+            console.debug('event-stream', event)
+            this.update(JSON.parse(event.data))
+        }
+
+        const error = (event) => {
+            console.error('event-stream', event)
+            ++this.messagesConnectionErrors
+
+            messages.removeEventListener('error', error)
+            messages.removeEventListener('team', team)
+            messages.close()
+
+            setTimeout(
+                () => this.setupMessages(),
+                this.messagesConnectionErrors * 3000,
+            )
+        }
+
+        messages.addEventListener('error', error)
+        messages.addEventListener('open', open)
+        messages.addEventListener('team', team)
+    }
+
     update(team) {
+        console.debug('update', team)
+
         const incremented = this.teamMap[team.name].points < team.points
         this.teamMap[team.name].points = team.points
 

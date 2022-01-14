@@ -6,6 +6,7 @@ import { join } from 'path'
 import { Config } from './config/config.entity'
 import { DriverService } from './driver/driver.service'
 import { LoggerService } from './logger/logger.service'
+import { ScoreboardService } from './scoreboard/scoreboard.service'
 import { TeamsService } from './teams/teams.service'
 
 @Injectable()
@@ -14,6 +15,7 @@ export class AppService {
         private readonly config: ConfigService<Config, true>,
         private readonly driver: DriverService,
         private readonly logger: LoggerService,
+        private readonly scoreboard: ScoreboardService,
         private readonly teams: TeamsService,
     ) {
         this.logger.setup(this.constructor.name)
@@ -36,6 +38,7 @@ export class AppService {
     async handleTerminateSignal(app: NestExpressApplication) {
         this.logger.log('got termination signal, gracefully shutting down...')
         this.driver.teardown()
+        this.scoreboard.teardown()
         await app.close()
         this.logger.verbose('doei')
     }

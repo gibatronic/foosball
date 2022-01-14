@@ -1,9 +1,8 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, ServiceUnavailableException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { EventEmitter2 } from '@nestjs/event-emitter'
+import { OnEvent } from '@nestjs/event-emitter'
 import { instanceToPlain } from 'class-transformer'
-import { fromEventPattern, map, Observable } from 'rxjs'
-import { NodeEventHandler } from 'rxjs/internal/observable/fromEvent'
+import { Subject } from 'rxjs'
 import { Config } from '../config/config.entity'
 import { EVENT_TEAM } from '../event-emitter/constants'
 import { LoggerService } from '../logger/logger.service'
@@ -14,9 +13,10 @@ import { ScoreboardMessageEvent, ScoreboardViewData } from './scoreboard.entity'
 
 @Injectable()
 export class ScoreboardService {
+    private messages: Subject<ScoreboardMessageEvent> = new Subject()
+
     constructor(
         private readonly config: ConfigService<Config, true>,
-        private readonly eventEmitter: EventEmitter2,
         private readonly logger: LoggerService,
         private readonly teams: TeamsService,
     ) {
@@ -46,23 +46,28 @@ export class ScoreboardService {
     streamEvents() {
         this.logger.debug('streamEvents')
 
-        const addHandler = (handler: NodeEventHandler) =>
-            this.eventEmitter.on(EVENT_TEAM, handler)
+        if (this.messages.closed) {
+            throw new ServiceUnavailableException()
+        }
 
-        const removeHandler = (handler: NodeEventHandler) =>
-            this.eventEmitter.off(EVENT_TEAM, handler)
+        return this.messages.asObservable()
+    }
 
-        const transformHandler = (team: Team) => ({
+    @OnEvent(EVENT_TEAM)
+    streamEvent(team: Team) {
+        this.logger.debug(`streamEvent ${team}`)
+
+        this.messages.next({
             data: instanceToPlain(team, {
                 groups: [TransformerGroups.EXTERNAL],
             }) as Team,
+            type: EVENT_TEAM.description,
         })
+    }
 
-        const observable: Observable<ScoreboardMessageEvent> =
-            fromEventPattern<Team>(addHandler, removeHandler).pipe(
-                map(transformHandler),
-            )
-
-        return observable
+    teardown() {
+        this.logger.debug('teardown')
+        this.messages.complete()
+        this.messages.unsubscribe()
     }
 }
