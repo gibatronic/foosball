@@ -2,6 +2,7 @@
     "collection": "@nestjs/schematics",
     "compilerOptions": {
         "assets": [
+            "**/*.css",
             "**/*.hbs",
             "**/*.js",
             "**/*.yaml"
