@@ -17,6 +17,7 @@ main() {
 	git checkout "$DEFAULT_BRANCH"
 	git reset --hard "origin/$DEFAULT_BRANCH"
 	git pull --ff-only
+	npm ci
 }
 
 . ./tasks/runner.sh
