@@ -32,7 +32,7 @@ export class DriverService {
 
         this.goalPinPoll
             .asObservable()
-            .pipe(distinctUntilChanged(), throttleTime(400))
+            .pipe(throttleTime(400))
             .subscribe((name: string) =>
                 this.eventEmitter.emit(EVENT_GOAL, name),
             )
