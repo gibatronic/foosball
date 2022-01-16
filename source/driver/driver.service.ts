@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import rpio from 'rpio'
-import { distinctUntilChanged, Subject, throttleTime } from 'rxjs'
+import { skipUntil, Subject, throttleTime, timer } from 'rxjs'
 import { EVENT_GOAL } from '../event-emitter/constants'
 import { LoggerService } from '../logger/logger.service'
 import { Team } from '../teams/team.entity'
@@ -10,6 +10,7 @@ import { TeamsService } from '../teams/teams.service'
 @Injectable()
 export class DriverService {
     private goalPinPoll = new Subject<string>()
+    private goalPinRest = 400 // milliseconds
 
     constructor(
         private readonly eventEmitter: EventEmitter2,
@@ -30,12 +31,19 @@ export class DriverService {
         this.logger.debug(`setupGoals`)
         this.teams.getTeams().forEach((team) => this.setupGoal(team))
 
+        const subscriber = (teamName: string) =>
+            this.eventEmitter.emit(EVENT_GOAL, teamName)
+
         this.goalPinPoll
             .asObservable()
-            .pipe(throttleTime(400))
-            .subscribe((name: string) =>
-                this.eventEmitter.emit(EVENT_GOAL, name),
+            .pipe(
+                // ignore signals immediatly after setup
+                skipUntil(timer(this.goalPinRest)),
+
+                // ignore signals immediatly after one is detected
+                throttleTime(this.goalPinRest),
             )
+            .subscribe(subscriber)
     }
 
     setupGoal(team: Team) {
