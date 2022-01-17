@@ -31,12 +31,14 @@ export class AppService {
         await app.listen(this.config.get<Config['port']>('port'))
         this.logger.log(`listening at ${await app.getUrl()}`)
 
-        process.on('SIGTERM', () => this.handleTerminateSignal(app))
+        process.on('SIGINT', (signal) => this.teardown(app, signal))
+        process.on('SIGTERM', (signal) => this.teardown(app, signal))
         process.on('warning', (warning) => this.logger.warn(warning))
+        process.send?.('ready')
     }
 
-    async handleTerminateSignal(app: NestExpressApplication) {
-        this.logger.log('got termination signal, gracefully shutting down...')
+    async teardown(app: NestExpressApplication, signal: NodeJS.Signals) {
+        this.logger.log(`got ${signal}, tearing down...`)
         this.driver.teardown()
         this.scoreboard.teardown()
         await app.close()
