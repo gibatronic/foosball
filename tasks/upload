@@ -45,26 +45,15 @@ upload() {
         local file="${event#$PWD/}"
         local log="$(mktemp)"
 
-        local options=(
-            '--archive'
-            '--ignore-times'
+        local action=(
+            rsync
+            --archive
+            --ignore-times
             "$file"
             "$UPLOAD_SERVER:$UPLOAD_FOLDER/$file"
         )
 
-        set +e
-        rsync "${options[@]}" &> "$log"
-        local exit_code="$?"
-        set -e
-
-        if [ "$exit_code" = '0' ]; then
-            printf '✓ %s\n' "$file"
-        else
-            printf '✖ %s\n' "$file"
-            cat "$log"
-        fi
-
-        rm "$log"
+        run "$file" "${action[@]}"
     done
 }
 
