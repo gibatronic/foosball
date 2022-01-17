@@ -1,23 +1,45 @@
 #!/usr/bin/env bash
 # Discards any changes and synchronizes the Raspberry Pi's project folder with the latests changes
 
+install_packages() {
+    npm ci
+}
+
 main() {
-	if ! is_raspberry_pi; then
-		if [ -z "$UPLOAD_FOLDER" ]; then
-			throw 'NO_UPLOAD_FOLDER' 'missing UPLOAD_FOLDER environment variable'
-		fi
+    if ! is_raspberry_pi; then
+        if [ -z "$UPLOAD_FOLDER" ]; then
+            throw 'NO_UPLOAD_FOLDER' 'missing UPLOAD_FOLDER environment variable'
+        fi
 
-		ssh foosball "cd $UPLOAD_FOLDER && npm run $TASK"
-		return "$?"
-	fi
+        ssh foosball "cd $UPLOAD_FOLDER && npm run $TASK"
+        return "$?"
+    fi
 
-	git checkout .
-	git reset .
-	git clean -f
-	git checkout "$DEFAULT_BRANCH"
-	git reset --hard "origin/$DEFAULT_BRANCH"
-	git pull --ff-only
-	npm ci
+    if ! command -v pm2 &> /dev/null; then
+        throw 'NO_PM2' "missing pm2 command"
+    fi
+
+    run 'git reset and checkout' reset_git
+    run 'install packages' install_packages
+    run 'build project' build_project
+    run 'reload process' reload_process
+}
+
+build_project() {
+    npm run build
+}
+
+reload_process() {
+    pm2 reload foosball
+}
+
+reset_git() {
+    git reset .
+    git checkout .
+    git clean -f
+    git checkout "$DEFAULT_BRANCH"
+    git reset --hard "origin/$DEFAULT_BRANCH"
+    git pull --ff-only
 }
 
 . ./tasks/runner.sh
