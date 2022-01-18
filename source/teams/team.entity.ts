@@ -12,7 +12,6 @@ export class Team {
     @Expose({ groups: [TransformerGroups.INTERNAL] })
     rivalGoalPin!: number
 
-    @ApiProperty({ type: [Number] })
     @Expose({ groups: [TransformerGroups.INTERNAL] })
     color!: [number, number, number]
 
