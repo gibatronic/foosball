@@ -1,6 +1,9 @@
 import { INestApplication } from '@nestjs/common'
 import request from 'supertest'
-import { createAppTestingModule } from './create-app-testing-module'
+import {
+    createAppTestingModule,
+    createFakeTeam,
+} from './create-app-testing-module'
 
 describe('TeamsController (e2e)', () => {
     let app: INestApplication
@@ -21,50 +24,29 @@ describe('TeamsController (e2e)', () => {
     })
 
     it('GET /api/teams', () => {
-        data.set('team:amethyst', {
-            name: 'amethyst',
-            color: [155, 89, 182],
-            points: 7,
-        })
+        const teamA = createFakeTeam({ name: 'team-a' })
+        const teamB = createFakeTeam({ name: 'team-b' })
 
-        data.set('team:emerald', {
-            name: 'emerald',
-            color: [46, 204, 113],
-            points: 8,
-        })
+        data.set(`team:${teamA.name}`, teamA)
+        data.set(`team:${teamB.name}`, teamB)
 
         return request(app.getHttpServer())
             .get('/api/teams')
             .expect(200)
             .expect([
-                {
-                    name: 'amethyst',
-                    color: [155, 89, 182],
-                    points: 7,
-                },
-                {
-                    name: 'emerald',
-                    color: [46, 204, 113],
-                    points: 8,
-                },
+                { name: teamA.name, points: teamA.points },
+                { name: teamB.name, points: teamB.points },
             ])
     })
 
     it('GET /api/teams/{name} 200', () => {
-        data.set('team:orange', {
-            name: 'orange',
-            color: '#FFA500',
-            points: 42,
-        })
+        const team = createFakeTeam()
+        data.set(`team:${team.name}`, team)
 
         return request(app.getHttpServer())
-            .get('/api/teams/orange')
+            .get(`/api/teams/${team.name}`)
             .expect(200)
-            .expect({
-                name: 'orange',
-                color: '#FFA500',
-                points: 42,
-            })
+            .expect({ name: team.name, points: team.points })
     })
 
     it('GET /api/teams/{name} 404', () => {
@@ -72,70 +54,42 @@ describe('TeamsController (e2e)', () => {
     })
 
     it('POST /api/teams/{name}/points 200', () => {
-        data.set('team:violet', {
-            name: 'violet',
-            color: '#8F00FF',
-            points: 11,
-        })
+        const team = createFakeTeam({ points: 4 })
+        data.set(`team:${team.name}`, team)
 
         return request(app.getHttpServer())
-            .post('/api/teams/violet/points')
+            .post(`/api/teams/${team.name}/points`)
             .expect(200)
-            .expect({
-                name: 'violet',
-                color: '#8F00FF',
-                points: 12,
-            })
+            .expect({ name: team.name, points: 5 })
     })
 
     it('DELETE /api/teams/{name}/points 200', () => {
-        data.set('team:violet', {
-            name: 'violet',
-            color: '#8F00FF',
-            points: 11,
-        })
+        const team = createFakeTeam({ points: 4 })
+        data.set(`team:${team.name}`, team)
 
         return request(app.getHttpServer())
-            .delete('/api/teams/violet/points')
+            .delete(`/api/teams/${team.name}/points`)
             .expect(200)
-            .expect({
-                name: 'violet',
-                color: '#8F00FF',
-                points: 10,
-            })
+            .expect({ name: team.name, points: 3 })
     })
 
     it('DELETE /api/teams/{name}/points 200', () => {
-        data.set('team:olive', {
-            name: 'olive',
-            color: '#808000',
-            points: 0,
-        })
+        const team = createFakeTeam({ points: 0 })
+        data.set(`team:${team.name}`, team)
 
         return request(app.getHttpServer())
-            .delete('/api/teams/olive/points')
+            .delete(`/api/teams/${team.name}/points`)
             .expect(200)
-            .expect({
-                name: 'olive',
-                color: '#808000',
-                points: 0,
-            })
+            .expect({ name: team.name, points: 0 })
     })
 
     it('POST /api/teams/{name}/points/reset 200', () => {
-        data.set('team:beige', {
-            name: 'beige',
-            color: '#F5F5DC',
-            points: 4,
-        })
+        const team = createFakeTeam({ points: 4 })
+        data.set(`team:${team.name}`, team)
 
         return request(app.getHttpServer())
-            .post('/api/teams/beige/points/reset')
+            .post(`/api/teams/${team.name}/points/reset`)
             .expect(200)
-            .expect({
-                name: 'beige',
-                color: '#F5F5DC',
-                points: 0,
-            })
+            .expect({ name: team.name, points: 0 })
     })
 })
