@@ -20,15 +20,7 @@ development:
 
 testing:
   <<: *base
-  teams:
-    - name: amethyst
-      color: [155, 89, 182]
-      points: 7
-      rivalGoalPin: 42
-    - name: emerald
-      color: [46, 204, 113]
-      points: 8
-      rivalGoalPin: 69
+  teams: []
 
 production:
   <<: *base

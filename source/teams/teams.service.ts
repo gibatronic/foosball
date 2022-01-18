@@ -1,8 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter'
-import { instanceToInstance, plainToClass } from 'class-transformer'
-import { Config } from '../config/config.entity'
+import { plainToInstance } from 'class-transformer'
 import { EVENT_GOAL, EVENT_TEAM } from '../event-emitter/constants'
 import { LoggerService } from '../logger/logger.service'
 import { StoreService } from '../store/store.service'
@@ -17,8 +15,9 @@ export class UnknownTeam extends NotFoundException {
 
 @Injectable()
 export class TeamsService {
+    private readonly storePrefix = 'team:'
+
     constructor(
-        private readonly config: ConfigService<Config, true>,
         private readonly eventEmitter: EventEmitter2,
         private readonly logger: LoggerService,
         private readonly store: StoreService,
@@ -27,12 +26,12 @@ export class TeamsService {
     }
 
     setTeam(team: Team) {
-        team = plainToClass(Team, team, {
+        team = plainToInstance(Team, team, {
             groups: [TransformerGroups.INTERNAL],
         })
 
         this.logger.debug(`setTeam ${team}`)
-        this.store.set(`team:${team.name}`, team)
+        this.store.set(`${this.storePrefix}${team.name}`, team)
         this.eventEmitter.emit(EVENT_TEAM, team)
 
         return team
@@ -45,21 +44,18 @@ export class TeamsService {
 
     getTeam(name: string) {
         this.logger.debug(`getTeam '${name}'`)
-        const team = this.store.get<Team>(`team:${name}`)
+        const team = this.store.get<Team>(`${this.storePrefix}${name}`)
 
         if (team === null) {
             throw new UnknownTeam(name)
         }
 
-        return instanceToInstance(team, {
-            groups: [TransformerGroups.INTERNAL],
-        })
+        return team
     }
 
     getTeams() {
         this.logger.debug('getTeams')
-        const teams = this.config.get<Config['teams']>('teams')
-        return teams.map(({ name }) => this.getTeam(name))
+        return this.store.list<Team>(this.storePrefix)
     }
 
     @OnEvent(EVENT_GOAL)
