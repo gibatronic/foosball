@@ -39,9 +39,6 @@ Project documentation to quickly get started hacking it.
 │   ├── exceptions
 │   │   Error handler
 │   │
-│   ├── log
-│   │   View and API to expose logs
-│   │
 │   ├── logger
 │   │   Tool for logging messages
 │   │
@@ -71,10 +68,6 @@ You can set them in a `.env` file, at the root of the project:
 # which configuration is loaded and if it should watch
 # for file changes
 ENVIRONMENT='development'
-
-# where logs should be written to when running in
-# production mode. defaults to a temporary file
-LOG_FILE=''
 
 # port number to listen to, set to zero for randomness
 PORT='4269'
