@@ -13,13 +13,25 @@ export class StoreService {
         this.logger.setup(this.constructor.name)
     }
 
-    public get<V>(key: string) {
+    get<V>(key: string) {
         this.logger.debug(`get '${key}'`)
         return (this.data.get(key) as V) ?? null
     }
 
-    public set(key: string, value: unknown) {
+    set(key: string, value: unknown) {
         this.logger.debug(`set '${key}' ${value}`)
         this.data.set(key, value)
+    }
+
+    list<V>(keyPrefix: string) {
+        const values = []
+
+        for (const [key, value] of this.data) {
+            if (key.startsWith(keyPrefix)) {
+                values.push(value as V)
+            }
+        }
+
+        return values
     }
 }
