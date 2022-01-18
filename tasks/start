@@ -6,8 +6,11 @@ main() {
             ENVIRONMENT="$ENVIRONMENT" NEST_DEBUG=true NODE_ENV="$ENVIRONMENT" npx nest start --watch
             ;;
         'production')
-            printf 'LOG_FILE=%s\n\n' "$LOG_FILE"
-            ENVIRONMENT="$ENVIRONMENT" LOG_FILE="$LOG_FILE" NO_COLOR='true' NODE_ENV="$ENVIRONMENT" node "$OUTPUT_FOLDER/main" &> "$LOG_FILE"
+            if ! command -v pm2 &> /dev/null; then
+                throw 'NO_PM2' "missing pm2 command"
+            fi
+
+            ENVIRONMENT="$ENVIRONMENT" NODE_ENV="$ENVIRONMENT" pm2 start --name 'foosball' --wait-ready "$OUTPUT_FOLDER/main.js"
             ;;
         *)
             if [ -z "$ENVIRONMENT" ]; then
