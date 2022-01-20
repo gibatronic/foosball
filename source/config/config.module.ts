@@ -1,8 +1,12 @@
+import { Logger } from '@nestjs/common'
 import { ConfigModule as ConfigBuilder } from '@nestjs/config'
+import { plainToInstance } from 'class-transformer'
+import { validateOrReject, ValidationError } from 'class-validator'
 import { readFileSync } from 'fs'
 import Joi from 'joi'
 import yaml from 'js-yaml'
 import { join } from 'path'
+import { TransformerGroups } from '../transformer-groups.enum'
 import { Config, ConfigFile } from './config.entity'
 import { Environment } from './environment.enum'
 
@@ -30,11 +34,30 @@ function loader(): Config {
     const port = parseInt(process.env.PORT ?? '0', 10)
     const version = process.env.npm_package_version ?? ''
 
-    return {
-        ...config[environment],
-        environment,
-        logFile,
-        port,
-        version,
-    }
+    const environmentConfig = plainToInstance(
+        Config,
+        {
+            ...config[environment],
+            environment,
+            logFile,
+            port,
+            version,
+        },
+        {
+            groups: [TransformerGroups.INTERNAL],
+        },
+    )
+
+    validateOrReject(environmentConfig, {
+        forbidNonWhitelisted: true,
+        whitelist: true,
+    }).catch((errors: ValidationError[]) => {
+        const logger = new Logger('ConfigModule')
+
+        for (const error of errors) {
+            logger.error(error.toString().trim())
+        }
+    })
+
+    return environmentConfig
 }
