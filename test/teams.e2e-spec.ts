@@ -83,13 +83,19 @@ describe('TeamsController (e2e)', () => {
             .expect({ name: team.name, points: 0 })
     })
 
-    it('POST /api/teams/{name}/points/reset 200', () => {
-        const team = createFakeTeam({ points: 4 })
-        data.set(`team:${team.name}`, team)
+    it('POST /api/teams/points/reset 200', () => {
+        const teamA = createFakeTeam({ name: 'team-a', points: 4 })
+        const teamB = createFakeTeam({ name: 'team-b', points: 2 })
+
+        data.set(`team:${teamA.name}`, teamA)
+        data.set(`team:${teamB.name}`, teamB)
 
         return request(app.getHttpServer())
-            .post(`/api/teams/${team.name}/points/reset`)
+            .post(`/api/teams/points/reset`)
             .expect(200)
-            .expect({ name: team.name, points: 0 })
+            .expect([
+                { name: teamA.name, points: 0 },
+                { name: teamB.name, points: 0 },
+            ])
     })
 })
