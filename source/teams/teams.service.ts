@@ -1,7 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter'
 import { plainToInstance } from 'class-transformer'
-import { EVENT_GOAL, EVENT_TEAM } from '../event-emitter/constants'
+import { Config } from '../config/config.entity'
+import {
+    EVENT_GOAL,
+    EVENT_RESET,
+    EVENT_TEAM,
+    EVENT_WIN,
+} from '../event-emitter/constants'
 import { LoggerService } from '../logger/logger.service'
 import { StoreService } from '../store/store.service'
 import { TransformerGroups } from '../transformer-groups.enum'
@@ -15,14 +22,24 @@ export class UnknownTeam extends NotFoundException {
 
 @Injectable()
 export class TeamsService {
+    private readonly pointsToWin =
+        this.config.get<Config['pointsToWin']>('pointsToWin') ??
+        Number.POSITIVE_INFINITY
+
     private readonly storePrefix = 'team:'
+    private winner: Team | null = null
 
     constructor(
+        private readonly config: ConfigService<Config, true>,
         private readonly eventEmitter: EventEmitter2,
         private readonly logger: LoggerService,
         private readonly store: StoreService,
     ) {
         this.logger.setup(this.constructor.name)
+    }
+
+    getWinner() {
+        return this.winner
     }
 
     setTeam(team: Team) {
@@ -61,14 +78,35 @@ export class TeamsService {
     @OnEvent(EVENT_GOAL)
     incrementTeamPoints(name: string) {
         this.logger.debug(`incrementTeamPoints '${name}'`)
-        const team = this.getTeam(name)
+        let team = this.getTeam(name)
+        const hasWinner = this.winner !== null
+
+        if (hasWinner) {
+            return team
+        }
+
         team.points = team.points + 1
-        return this.setTeam(team)
+        team = this.setTeam(team)
+
+        const hasEnoughPointsToWin = team.points >= this.pointsToWin
+
+        if (hasEnoughPointsToWin) {
+            this.winner = team
+            this.eventEmitter.emit(EVENT_WIN, team)
+        }
+
+        return team
     }
 
     decrementTeamPoints(name: string) {
         this.logger.debug(`decrementTeamPoints '${name}'`)
         const team = this.getTeam(name)
+        const hasWinner = this.winner !== null
+
+        if (hasWinner) {
+            return team
+        }
+
         team.points = Math.max(0, team.points - 1)
         return this.setTeam(team)
     }
@@ -78,5 +116,17 @@ export class TeamsService {
         const team = this.getTeam(name)
         team.points = 0
         return this.setTeam(team)
+    }
+
+    resetTeamsPoints() {
+        this.logger.debug('resetTeamsPoints')
+
+        const teams = this.getTeams().map((team) =>
+            this.resetTeamPoints(team.name),
+        )
+
+        this.winner = null
+        this.eventEmitter.emit(EVENT_RESET, teams)
+        return teams
     }
 }

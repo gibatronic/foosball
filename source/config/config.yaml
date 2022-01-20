@@ -5,6 +5,7 @@ base: &base
     - log
     - warn
     - error
+  pointsToWin: 10
   teams:
     - name: blue
       color: [52, 152, 219]

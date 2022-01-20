@@ -56,12 +56,11 @@ export class TeamsController {
         return this.teamsService.decrementTeamPoints(name)
     }
 
-    @Post(':name/points/reset')
-    @ApiOperation({ summary: 'Resets the points of a team to 0' })
-    @ApiOkResponse({ type: Team })
-    @ApiNotFoundResponse({ type: ErrorResponse })
+    @Post('points/reset')
+    @ApiOperation({ summary: 'Resets the points of all teams to 0' })
+    @ApiOkResponse({ type: [Team] })
     @HttpCode(200)
-    resetTeamPoints(@Param('name') name: string) {
-        return this.teamsService.resetTeamPoints(name)
+    resetTeamsPoints() {
+        return this.teamsService.resetTeamsPoints()
     }
 }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"{{#if winner}}class="win win--{{winner.name}}"{{/if}}>
     <head>
         <meta charset="UTF-8">
         <title>Foosball</title>
@@ -20,17 +20,44 @@
             .goal--{{this.name}} {
                 --color-score: var(--color-team-{{this.name}});
             }
-            {{/each}}
 
-            {{#each teams}}
-            .points__team--{{this.name}} {
-                color: rgb({{this.colorForWeb}} / 1);
+            {{#unless @index}}
+            .points::before {
+                right: 50%;
+                left: 0;
+                background-color: rgb(var(--color-team-{{this.name}}));
+                box-shadow: 0 0 32px rgb(var(--color-team-{{this.name}}) / 0.2), 0 0 96px rgb(var(--color-team-{{this.name}}) / 0.2);
             }
-            {{/each}}
 
-            {{#each teams}}
+            .win--{{this.name}} .points::before {
+                opacity: 1;
+            }
+            {{/unless}}
+
+            {{#if @index}}
+            .points::after {
+                right: 0;
+                left: 50%;
+                background-color: rgb(var(--color-team-{{this.name}}));
+                box-shadow: 0 0 32px rgb(var(--color-team-{{this.name}}) / 0.2), 0 0 96px rgb(var(--color-team-{{this.name}}) / 0.2);
+            }
+
+            .win--{{this.name}} .points::after {
+                opacity: 1;
+            }
+            {{/if}}
+
+            .points__team--{{this.name}} {
+                color: rgb({{this.colorForWeb}});
+            }
+
             .goal--{{this.name}} .points__team--{{this.name}} {
                 animation-name: increment;
+            }
+
+            .win--{{this.name}} .points__team--{{this.name}} {
+                color: rgb(255 255 255);
+                text-shadow: 0 0 32px rgb(255 255 255 / 0.2), 0 0 96px rgb(255 255 255 / 0.2);
             }
             {{/each}}
         </style>

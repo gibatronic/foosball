@@ -4,7 +4,7 @@ import { OnEvent } from '@nestjs/event-emitter'
 import { instanceToPlain } from 'class-transformer'
 import { Subject } from 'rxjs'
 import { Config } from '../config/config.entity'
-import { EVENT_TEAM } from '../event-emitter/constants'
+import { EVENT_RESET, EVENT_TEAM, EVENT_WIN } from '../event-emitter/constants'
 import { LoggerService } from '../logger/logger.service'
 import { Team } from '../teams/team.entity'
 import { TeamsService } from '../teams/teams.service'
@@ -40,6 +40,7 @@ export class ScoreboardService {
             serializedTeamMap: JSON.stringify(teamMap),
             teams: teamList,
             version: this.config.get<Config['version']>('version'),
+            winner: this.teams.getWinner(),
         }
     }
 
@@ -54,20 +55,37 @@ export class ScoreboardService {
     }
 
     @OnEvent(EVENT_TEAM)
-    streamEvent(team: Team) {
-        this.logger.debug(`streamEvent ${team}`)
+    streamTeamEvent(team: Team) {
+        this.logger.debug(`streamTeamEvent ${team}`)
+        this.sendMessage(EVENT_TEAM, team)
+    }
 
-        this.messages.next({
-            data: instanceToPlain(team, {
-                groups: [TransformerGroups.EXTERNAL],
-            }) as Team,
-            type: EVENT_TEAM.description,
-        })
+    @OnEvent(EVENT_RESET)
+    streamResetEvent(teams: Team[]) {
+        this.logger.debug('streamResetEvent')
+        this.sendMessage(EVENT_RESET, teams)
+    }
+
+    @OnEvent(EVENT_WIN)
+    streamWinEvent(team: Team) {
+        this.logger.debug(`streamWinEvent ${team}`)
+        this.sendMessage(EVENT_WIN, team)
     }
 
     teardown() {
         this.logger.debug('teardown')
         this.messages.complete()
         this.messages.unsubscribe()
+    }
+
+    private sendMessage(type: symbol, data: Team | Team[]) {
+        this.logger.debug(`sendMessage '${type.description}'`)
+
+        this.messages.next({
+            data: instanceToPlain(data, {
+                groups: [TransformerGroups.EXTERNAL],
+            }) as Team | Team[],
+            type: type.description,
+        })
     }
 }

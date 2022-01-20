@@ -89,6 +89,7 @@ main {
     font-size: min(10vw, 20vh);
     font-weight: 500;
     width: auto;
+    z-index: 200;
 }
 
 .marquee__letter {
@@ -123,6 +124,22 @@ main {
     justify-content: center;
 }
 
+.points::before,
+.points::after {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background-size: 450px 144px;
+    content: '';
+    opacity: 0;
+    transition-delay: 150ms;
+    transition-duration: 50ms;
+    transition-property: opacity;
+    width: auto;
+    height: auto;
+    z-index: 100;
+}
+
 .points__team,
 .points__versus {
     position: relative;
@@ -144,6 +161,7 @@ main {
     font-size: min(40vw, 60vh);
     padding-inline: 5vw;
     text-shadow: 0 0 32px rgb(0 0 0), 0 0 96px rgb(0 0 0);
+    z-index: 300;
 }
 
 .points__team:first-child {
@@ -160,4 +178,5 @@ main {
     color: rgb(255 255 255 / 0.8);
     font-size: min(10vw, 20vh);
     font-weight: 100;
+    z-index: 400;
 }

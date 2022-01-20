@@ -1,3 +1,9 @@
+const EVENT_ERROR = 'error'
+const EVENT_OPEN = 'open'
+const EVENT_RESET = 'reset'
+const EVENT_TEAM = 'team'
+const EVENT_WIN = 'win'
+
 function $(selectors) {
     return document.querySelector(selectors)
 }
@@ -26,9 +32,11 @@ function parseTextContent(element) {
 
 class Main {
     elements = {}
+    htmlClassList = document.documentElement.classList
     messagesConnectionErrors = 0
     teamList = []
     teamMap = {}
+    winner = null
 
     constructor(teamMap) {
         console.debug('constructor', teamMap)
@@ -71,7 +79,7 @@ class Main {
             )
         }
 
-        document.documentElement.classList.add('goal', `goal--${team.name}`)
+        this.htmlClassList.add('goal', `goal--${team.name}`)
 
         setTimeout(() => {
             this.elements.teams[team.name].textContent = team.points
@@ -83,29 +91,22 @@ class Main {
                 .addEventListener('animationend', resolve)
         })
 
-        document.documentElement.classList.remove('goal', `goal--${team.name}`)
+        this.htmlClassList.remove('goal', `goal--${team.name}`)
     }
 
     setupMessages() {
         console.debug('setupMessages')
         const messages = new EventSource('event-stream')
 
-        const open = (event) => {
-            console.debug('event-stream', event)
-            this.messagesConnectionErrors = 0
-        }
-
-        const team = (event) => {
-            console.debug('event-stream', event)
-            this.update(JSON.parse(event.data))
-        }
-
         const error = (event) => {
             console.error('event-stream', event)
             ++this.messagesConnectionErrors
 
-            messages.removeEventListener('error', error)
-            messages.removeEventListener('team', team)
+            messages.removeEventListener(EVENT_ERROR, error)
+            messages.removeEventListener(EVENT_OPEN, open)
+            messages.removeEventListener(EVENT_RESET, reset)
+            messages.removeEventListener(EVENT_TEAM, team)
+            messages.removeEventListener(EVENT_WIN, win)
             messages.close()
 
             setTimeout(
@@ -114,14 +115,46 @@ class Main {
             )
         }
 
-        messages.addEventListener('error', error)
-        messages.addEventListener('open', open)
-        messages.addEventListener('team', team)
+        const open = (event) => {
+            console.debug('event-stream', event)
+            this.messagesConnectionErrors = 0
+        }
+
+        const reset = (event) => {
+            console.debug('event-stream', event)
+            this.reset(JSON.parse(event.data))
+        }
+
+        const team = (event) => {
+            console.debug('event-stream', event)
+            this.update(JSON.parse(event.data))
+        }
+
+        const win = (event) => {
+            console.debug('event-stream', event)
+            this.win(JSON.parse(event.data))
+        }
+
+        messages.addEventListener(EVENT_ERROR, error)
+        messages.addEventListener(EVENT_OPEN, open)
+        messages.addEventListener(EVENT_RESET, reset)
+        messages.addEventListener(EVENT_TEAM, team)
+        messages.addEventListener(EVENT_WIN, win)
+    }
+
+    reset(teams) {
+        console.debug('reset', teams)
+        this.winner = null
+        this.htmlClassList.remove('win')
+
+        teams.forEach((team) => {
+            this.htmlClassList.remove(`win--${team.name}`)
+            this.update(team)
+        })
     }
 
     update(team) {
         console.debug('update', team)
-
         const incremented = this.teamMap[team.name].points < team.points
         this.teamMap[team.name].points = team.points
 
@@ -130,6 +163,12 @@ class Main {
         } else {
             this.elements.teams[team.name].textContent = team.points
         }
+    }
+
+    win(team) {
+        console.debug('win', team)
+        this.winner = team
+        this.htmlClassList.add('win', `win--${team.name}`)
     }
 }
 

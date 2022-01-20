@@ -5,8 +5,9 @@ export interface ScoreboardViewData {
     serializedTeamMap: string
     teams: Team[]
     version: string
+    winner: Team | null
 }
 
 export interface ScoreboardMessageEvent extends MessageEvent {
-    data: Team
+    data: Team | Team[]
 }
