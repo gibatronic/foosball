@@ -22,10 +22,7 @@ export class UnknownTeam extends NotFoundException {
 
 @Injectable()
 export class TeamsService {
-    private readonly pointsToWin =
-        this.config.get<Config['pointsToWin']>('pointsToWin') ??
-        Number.POSITIVE_INFINITY
-
+    private pointsToWin
     private readonly storePrefix = 'team:'
     private winner: Team | null = null
 
@@ -36,6 +33,10 @@ export class TeamsService {
         private readonly store: StoreService,
     ) {
         this.logger.setup(this.constructor.name)
+
+        this.pointsToWin =
+            this.config.get<Config['pointsToWin']>('pointsToWin') ??
+            Number.POSITIVE_INFINITY
     }
 
     getWinner() {
