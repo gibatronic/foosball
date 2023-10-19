@@ -1,4 +1,5 @@
 base: &base
+  displayFQBN: arduino:avr:uno
   logLevels:
     - verbose
     - debug

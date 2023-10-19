@@ -17,6 +17,9 @@ import { Team } from '../teams/team.entity'
 import { Environment } from './environment.enum'
 
 export class Config {
+    @IsString()
+    displayFQBN!: string
+
     @IsEnum(Environment)
     environment!: Environment
 

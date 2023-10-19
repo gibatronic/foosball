@@ -4,11 +4,13 @@ import { OnEvent } from '@nestjs/event-emitter'
 import { instanceToPlain } from 'class-transformer'
 import { Subject } from 'rxjs'
 import { Config } from '../config/config.entity'
+import { DriverService } from '../driver/driver.service'
 import { EVENT_RESET, EVENT_TEAM, EVENT_WIN } from '../event-emitter/constants'
 import { LoggerService } from '../logger/logger.service'
 import { Team } from '../teams/team.entity'
 import { TeamsService } from '../teams/teams.service'
 import { TransformerGroups } from '../transformer-groups.enum'
+import { X, digits } from './constants'
 import { ScoreboardMessageEvent, ScoreboardViewData } from './scoreboard.entity'
 
 @Injectable()
@@ -17,6 +19,7 @@ export class ScoreboardService {
 
     constructor(
         private readonly config: ConfigService<Config, true>,
+        private readonly driver: DriverService,
         private readonly logger: LoggerService,
         private readonly teams: TeamsService,
     ) {
@@ -44,6 +47,29 @@ export class ScoreboardService {
         }
     }
 
+    framePoints(frame: Uint8Array, column: number, team: Team) {
+        const digit = digits[team.points]
+        const digitPixels = digit.length
+
+        for (
+            let digitIndex = 0, pixelIndex = column;
+            digitIndex < digitPixels;
+            digitIndex += 1, pixelIndex += 1
+        ) {
+            if (digit[digitIndex] === X) {
+                const frameIndex = pixelIndex * 4
+
+                frame[frameIndex + 0] = team.color[0]
+                frame[frameIndex + 1] = team.color[1]
+                frame[frameIndex + 2] = team.color[2]
+            }
+
+            if ((digitIndex + 1) % 3 === 0) {
+                pixelIndex += 5
+            }
+        }
+    }
+
     streamEvents() {
         this.logger.debug('streamEvents')
 
@@ -58,6 +84,7 @@ export class ScoreboardService {
     streamTeamEvent(team: Team) {
         this.logger.debug(`streamTeamEvent ${team}`)
         this.sendMessage(EVENT_TEAM, team)
+        this.updateDisplay()
     }
 
     @OnEvent(EVENT_RESET)
@@ -70,12 +97,26 @@ export class ScoreboardService {
     streamWinEvent(team: Team) {
         this.logger.debug(`streamWinEvent ${team}`)
         this.sendMessage(EVENT_WIN, team)
+        this.updateDisplay()
     }
 
     teardown() {
         this.logger.debug('teardown')
         this.messages.complete()
         this.messages.unsubscribe()
+    }
+
+    updateDisplay() {
+        this.logger.debug('updateDisplay')
+
+        const teams = this.teams.getTeams()
+        const frame = new Uint8Array(160)
+
+        for (const [index, team] of teams.entries()) {
+            this.framePoints(frame, index * 5, team)
+        }
+
+        this.driver.display(frame)
     }
 
     private sendMessage(type: symbol, data: Team | Team[]) {

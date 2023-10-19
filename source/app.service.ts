@@ -26,11 +26,13 @@ export class AppService {
         this.setupApp(app)
         this.setupSwagger(app)
         this.setupViews(app)
-        this.driver.setup()
+        await this.driver.setup()
+        this.scoreboard.updateDisplay()
 
         await app.listen(this.config.get<Config['port']>('port'))
         this.logger.log(`listening at ${await app.getUrl()}`)
 
+        process.on('unhandledRejection', (reason) => this.logger.error(reason))
         process.on('SIGINT', (signal) => this.teardown(app, signal))
         process.on('SIGTERM', (signal) => this.teardown(app, signal))
         process.on('warning', (warning) => this.logger.warn(warning))
@@ -39,7 +41,7 @@ export class AppService {
 
     async teardown(app: NestExpressApplication, signal: NodeJS.Signals) {
         this.logger.log(`got ${signal}, tearing down...`)
-        this.driver.teardown()
+        await this.driver.teardown()
         this.scoreboard.teardown()
         await app.close()
         this.logger.verbose('doei')
