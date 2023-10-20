@@ -10,7 +10,7 @@ import { LoggerService } from '../logger/logger.service'
 import { Team } from '../teams/team.entity'
 import { TeamsService } from '../teams/teams.service'
 import { TransformerGroups } from '../transformer-groups.enum'
-import { X, digits } from './constants'
+import { _, digits } from './constants'
 import { ScoreboardMessageEvent, ScoreboardViewData } from './scoreboard.entity'
 
 @Injectable()
@@ -47,26 +47,24 @@ export class ScoreboardService {
         }
     }
 
-    framePoints(frame: Uint8Array, column: number, team: Team) {
-        const digit = digits[team.points]
+    framePoints(frame: Uint8Array, column: number, { color, points }: Team) {
+        const digit = digits[points]
         const digitPixels = digit.length
 
         for (
             let digitIndex = 0, pixelIndex = column;
             digitIndex < digitPixels;
-            digitIndex += 1, pixelIndex += 1
+            digitIndex += 1, pixelIndex += digitIndex % 3 === 0 ? 6 : 1
         ) {
-            if (digit[digitIndex] === X) {
-                const frameIndex = pixelIndex * 4
-
-                frame[frameIndex + 0] = team.color[0]
-                frame[frameIndex + 1] = team.color[1]
-                frame[frameIndex + 2] = team.color[2]
+            if (digit[digitIndex] === _) {
+                continue
             }
 
-            if ((digitIndex + 1) % 3 === 0) {
-                pixelIndex += 5
-            }
+            const frameIndex = pixelIndex * 4
+
+            frame[frameIndex + 0] = color[0]
+            frame[frameIndex + 1] = color[1]
+            frame[frameIndex + 2] = color[2]
         }
     }
 

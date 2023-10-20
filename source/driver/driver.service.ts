@@ -67,6 +67,7 @@ export class DriverService {
         // wait for the display to send
         // a byte to signal being ready
         await this.displayPort.read()
+        await wait(200)
     }
 
     setupGoals() {
