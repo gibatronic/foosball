@@ -8,7 +8,7 @@ const digitZero = [
     X, _, X,
     X, _, X,
     X, X, X,
-]
+] as const
 
 // prettier-ignore
 const digitOne = [
@@ -17,7 +17,7 @@ const digitOne = [
     _, X, _,
     _, X, _,
     _, X, _,
-]
+] as const
 
 // prettier-ignore
 const digitTwo = [
@@ -26,7 +26,7 @@ const digitTwo = [
     X, X, X,
     X, _, _,
     X, X, X,
-]
+] as const
 
 // prettier-ignore
 const digitThree = [
@@ -35,7 +35,7 @@ const digitThree = [
     X, X, X,
     _, _, X,
     X, X, X,
-]
+] as const
 
 // prettier-ignore
 const digitFour = [
@@ -44,7 +44,7 @@ const digitFour = [
     X, X, X,
     _, _, X,
     _, _, X,
-]
+] as const
 
 // prettier-ignore
 const digitFive = [
@@ -53,7 +53,7 @@ const digitFive = [
     X, X, X,
     _, _, X,
     X, X, X,
-]
+] as const
 
 // prettier-ignore
 const digitSix = [
@@ -62,7 +62,7 @@ const digitSix = [
     X, X, X,
     X, _, X,
     X, X, X,
-]
+] as const
 
 // prettier-ignore
 const digitSeven = [
@@ -71,7 +71,7 @@ const digitSeven = [
     _, _, X,
     _, _, X,
     _, _, X,
-]
+] as const
 
 // prettier-ignore
 const digitEight = [
@@ -80,7 +80,7 @@ const digitEight = [
     X, X, X,
     X, _, X,
     X, X, X,
-]
+] as const
 
 // prettier-ignore
 const digitNine = [
@@ -89,7 +89,7 @@ const digitNine = [
     X, X, X,
     _, _, X,
     X, X, X,
-]
+] as const
 
 // prettier-ignore
 const digitTen = [
@@ -98,7 +98,7 @@ const digitTen = [
     _, X, _,
     X, _, X,
     X, _, X,
-]
+] as const
 
 export const digits = [
     digitZero,
@@ -112,4 +112,4 @@ export const digits = [
     digitEight,
     digitNine,
     digitTen,
-]
+] as const

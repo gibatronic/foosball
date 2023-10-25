@@ -4,7 +4,7 @@ import { OnEvent } from '@nestjs/event-emitter'
 import { instanceToPlain } from 'class-transformer'
 import { Subject } from 'rxjs'
 import { Config } from '../config/config.entity'
-import { DriverService } from '../driver/driver.service'
+import { DisplayDriverService } from '../driver/display-driver.service'
 import { EVENT_RESET, EVENT_TEAM, EVENT_WIN } from '../event-emitter/constants'
 import { LoggerService } from '../logger/logger.service'
 import { Team } from '../teams/team.entity'
@@ -15,11 +15,14 @@ import { ScoreboardMessageEvent, ScoreboardViewData } from './scoreboard.entity'
 
 @Injectable()
 export class ScoreboardService {
-    private messages: Subject<ScoreboardMessageEvent> = new Subject()
+    private readonly colorsPerPixel = 4 // RGBW
+    private readonly digitColumns = 3
+    private readonly frameColumns = 8
+    private readonly messages: Subject<ScoreboardMessageEvent> = new Subject()
 
     constructor(
         private readonly config: ConfigService<Config, true>,
-        private readonly driver: DriverService,
+        private readonly displayDriver: DisplayDriverService,
         private readonly logger: LoggerService,
         private readonly teams: TeamsService,
     ) {
@@ -50,17 +53,43 @@ export class ScoreboardService {
     framePoints(frame: Uint8Array, column: number, { color, points }: Team) {
         const digit = digits[points]
         const digitPixels = digit.length
+        const columnDelta = this.frameColumns - this.digitColumns
+
+        // map each digit pixel to a specific frame pixel, for example:
+        //
+        // digit
+        // ┌ 1 1 1 ┐
+        // │ 1 0 1 │
+        // │ 1 1 1 │
+        // │ 1 0 1 │
+        // └ 1 1 1 ┘
+        //
+        // frame
+        // ┌ 0 0 0 0 0 0 0 0 ┐
+        // │ 0 0 0 0 0 0 0 0 │
+        // │ 0 0 0 0 0 0 0 0 │
+        // │ 0 0 0 0 0 0 0 0 │
+        // └ 0 0 0 0 0 0 0 0 ┘
+        //
+        // frame + digit at column 5:
+        // ┌ 0 0 0 0 0 1 1 1 ┐
+        // │ 0 0 0 0 0 1 0 1 │
+        // │ 0 0 0 0 0 1 1 1 │
+        // │ 0 0 0 0 0 1 0 1 │
+        // └ 0 0 0 0 0 1 1 1 ┘
 
         for (
             let digitIndex = 0, pixelIndex = column;
             digitIndex < digitPixels;
-            digitIndex += 1, pixelIndex += digitIndex % 3 === 0 ? 6 : 1
+            digitIndex += 1,
+                pixelIndex +=
+                    1 + (digitIndex % this.digitColumns === 0 ? columnDelta : 0)
         ) {
             if (digit[digitIndex] === _) {
                 continue
             }
 
-            const frameIndex = pixelIndex * 4
+            const frameIndex = pixelIndex * this.colorsPerPixel
 
             frame[frameIndex + 0] = color[0]
             frame[frameIndex + 1] = color[1]
@@ -114,7 +143,7 @@ export class ScoreboardService {
             this.framePoints(frame, index * 5, team)
         }
 
-        this.driver.display(frame)
+        this.displayDriver.display(frame)
     }
 
     private sendMessage(type: symbol, data: Team | Team[]) {

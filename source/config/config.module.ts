@@ -52,6 +52,10 @@ function loader(): Config {
         forbidNonWhitelisted: true,
         whitelist: true,
     }).catch((errors: ValidationError[]) => {
+        if (environment === Environment.testing) {
+            return;
+        }
+
         const logger = new Logger('ConfigModule')
 
         for (const error of errors) {

@@ -6,9 +6,7 @@ jest.mock('../store/store.service')
 import { ConfigService } from '@nestjs/config'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { Test, TestingModule } from '@nestjs/testing'
-import { DriverService } from '../driver/driver.service'
 import { LoggerService } from '../logger/logger.service'
-import { ScoreboardService } from '../scoreboard/scoreboard.service'
 import { StoreService } from '../store/store.service'
 import { TeamsService } from './teams.service'
 
@@ -19,10 +17,8 @@ describe('TeamsService', () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 ConfigService,
-                DriverService,
                 EventEmitter2,
                 LoggerService,
-                ScoreboardService,
                 StoreService,
                 TeamsService,
             ],

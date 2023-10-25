@@ -88,7 +88,7 @@ export class AppService {
     }
 
     setupViews(app: NestExpressApplication) {
-        const folders = ['log', 'scoreboard']
+        const folders = ['scoreboard']
         const paths = folders.map((folder) => join(__dirname, folder))
 
         app.setBaseViewsDir(paths)

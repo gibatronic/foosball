@@ -1,5 +1,6 @@
 jest.mock('rpio')
 jest.mock('../source/logger/logger.service')
+jest.mock('../source/driver/display-driver.service.ts')
 
 import { NestExpressApplication } from '@nestjs/platform-express'
 import { Test, TestingModule } from '@nestjs/testing'
